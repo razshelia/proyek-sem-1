@@ -112,23 +112,6 @@ def daftar_toko_baru(nama_toko, nik, kartu_keluarga, bukti_usaha, ktp, user_id, 
     finally:
         conn.close()
 
-# def ambil_alamat_user(user_id):
-#     conn = buat_koneksi()
-#     if not conn: return None
-#     cursor = conn.cursor()
-#     cursor.execute("""
-#         SELECT a.deskripsi_alamat, kc.nama_kecamatan, kb.nama_kabupaten, p.nama_provinsi
-#         FROM akun ak
-#         LEFT JOIN alamat a ON ak.id_akun = a.id_alamat
-#         LEFT JOIN kecamatan kc ON a.id_kecamatan = kc.id_kecamatan
-#         LEFT JOIN kabupaten kb ON kc.id_kabupaten = kb.id_kabupaten
-#         LEFT JOIN provinsi p ON kb.id_provinsi = p.id_provinsi
-#         WHERE ak.id_akun = %s
-#     """, (user_id,))
-#     result = cursor.fetchone()
-#     conn.close()
-#     return result
-
 # Alamat/Wilayah
 
 def ambil_semua_provinsi():
@@ -234,21 +217,6 @@ def laporan_penjualan_per_toko():
     result = cursor.fetchall()
     conn.close()
     return result
-
-# def laporan_penjualan():
-#     conn = buat_koneksi()
-#     if not conn: return (0, 0)
-#     cursor = conn.cursor()
-#     cursor.execute("""
-#         SELECT COUNT(*), SUM(tr.jumlah)
-#         FROM transaksi tr 
-#         JOIN pesanan p USING(id_pesanan)
-#         JOIN status_pesanan sp USING(id_status_pesanan)
-#         WHERE sp.id_status_pesanan = 2
-#     """)
-#     result = cursor.fetchone()
-#     conn.close()
-#     return result or (0, 0)
 
 def ambil_semua_transaksi(kode_pesanan=None):
     conn = buat_koneksi()
@@ -402,12 +370,12 @@ def tambah_produk_baru(nama, harga, stok, diskon, deskripsi, tanggal_kadaluarsa,
     finally:
         conn.close()
 
-def update_data_produk(produk_id, nama_kolom, nilai_baru):
+def update_data_produk(produk_id, nama_kolom, nilai_baru,toko_id):
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
-    query = f"UPDATE produk SET {nama_kolom}=%s WHERE id_produk=%s"
-    cursor.execute(query, (nilai_baru, produk_id))
+    query = f"UPDATE produk SET {nama_kolom}=%s WHERE id_produk=%s AND id_profil_penjual=%s"
+    cursor.execute(query, (nilai_baru, produk_id, toko_id))
     conn.close()
 
 def hapus_produk(produk_id, toko_id):

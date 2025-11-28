@@ -1,12 +1,11 @@
 # === GRUP 1: IMPORTS & DASHBOARD ===
-import os
 from tabulate import tabulate
 import query as db
 
 
 def dashboard_penjual(sesi):
     toko = db.ambil_toko_by_user(sesi['id'])
-    if not toko: 
+    if not toko:
         print("Toko tidak ditemukan.")
         input("Tekan ENTER untuk melanjutkan...")
         return

@@ -1,5 +1,4 @@
 # === GRUP 1: IMPORTS & DASHBOARD ===
-import os
 from tabulate import tabulate
 import query as db
 
@@ -157,8 +156,7 @@ def menu_keranjang(sesi):
                 item['nm'], 
                 item['qty'], 
                 db.format_mata_uang(item['hrg']), 
-                db.format_mata_uang(item['hrg'] * item['qty'])
-            ])
+                db.format_mata_uang(item['hrg'] * item['qty'])])
         
         print(tabulate(data_keranjang, headers=["#", "Produk", "Qty", "Harga", "Subtotal"], tablefmt="fancy_grid"))
         print(f"Total Estimasi: {db.format_mata_uang(sum(item['hrg'] * item['qty'] for item in keranjang))}")
@@ -175,7 +173,7 @@ def menu_keranjang(sesi):
         elif pilihan == '1':
             dikelompokkan = {}
             for item in keranjang:
-                dikelompokkan.setdefault(item['pid'], []).append(item)
+                 dikelompokkan.setdefault(item['pid'], []).append(item)
             
             hitung_sukses = 0
             for toko_id, items in dikelompokkan.items():
@@ -192,16 +190,15 @@ def menu_keranjang(sesi):
         elif pilihan == '2':
             input_nomor = input("Masukkan nomor item: ").strip()
             if input_nomor and input_nomor.isdigit():
-                try:
-                    nomor_item = int(input_nomor) - 1
-                    if 0 <= nomor_item < len(keranjang):
-                        item_dihapus = keranjang[nomor_item]
-                        del keranjang[nomor_item]
-                        print(f"{item_dihapus['nm']} dihapus dari keranjang.")
-                    else:
-                        print("Nomor item tidak valid.")
-                except:
+                        
+                nomor_item = int(input_nomor) - 1
+                if 0 <= nomor_item < len(keranjang):
+                    item_dihapus = keranjang[nomor_item]
+                    del keranjang[nomor_item]
+                    print(f"{item_dihapus['nm']} dihapus dari keranjang.")
+                else:
                     print("Nomor item tidak valid.")
+                
             input("Tekan ENTER untuk melanjutkan...")
 
 # === GRUP 4: FITUR RIWAYAT & ULASAN ===

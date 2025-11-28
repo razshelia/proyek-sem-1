@@ -1,5 +1,4 @@
 # === GRUP 1: IMPORTS & DASHBOARD ===
-import os
 from tabulate import tabulate
 import query as db
 
@@ -54,8 +53,8 @@ def verifikasi_penjual():
             item[7],           
             alamat_lengkap,    
             item[9],           
-            item[8]            
-        ])
+            item[8] 
+            ])
     
     print(tabulate(tabel_data, headers=headers, tablefmt="fancy_grid"))
     
@@ -204,8 +203,8 @@ def lihat_aduan():
             item[1].strftime('%Y-%m-%d'),
             item[2],
             item[3],
-            item[4][:50] + "..." if len(item[4]) > 50 else item[4]  
-        ])
+            item[4][:50] + "..." if len(item[4]) > 50 else item[4]
+            ])
     
     print(tabulate(tabel_data, headers=headers, tablefmt="fancy_grid"))
     
