@@ -1,0 +1,8 @@
+# Abaikan file cache Python
+_pycache_/
+*.pyc
+
+# Abaikan folder environment (jika nanti pakai)
+env/
+venv/
+.env
