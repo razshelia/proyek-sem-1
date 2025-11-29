@@ -12,50 +12,54 @@ DB_CONFIG = {
 }
 
 def buat_koneksi():
-    try: 
+    # Buat koneksi DB. Jika gagal, tampilkan pesan dan kembalikan None agar pemanggil bisa berhenti awal.
+    try:
+        # Membuat koneksi ke database PostgreSQL menggunakan psycopg2
+        # dengan parameter dari DB_CONFIG (host, port, user, password, database)
+        # **DB_CONFIG: argument unpacking 
+        # (teknik membongkar dictionary agar nilainya otomatis masuk ke parameter fungsi)
         conn = psycopg2.connect(**DB_CONFIG)
+        # Mengaktifkan autocommit: setiap query SQL langsung tersimpan tanpa perlu commit()
         conn.autocommit = True
         return conn
-    except Exception as e: 
+    except Exception as e:
         print(f"Koneksi Error: {e}")
         return None
 
 def bersihkan_layar():
+    # Bersihkan layar terminal (Windows/Unix)
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def format_mata_uang(jumlah):
+    # Format angka ke Rupiah tanpa desimal
     return f"Rp {int(jumlah):,.0f}".replace(',', '.')
 
-def format_desimal(nilai):
-    try:
-        return float("{:.2f}".format(float(nilai)))
-    except:
-        return nilai
-
 def cek_panjang_teks(teks, max_panjang):
+    # Validasi panjang teks tidak melebihi batas
     if teks and len(teks) > max_panjang:
         print(f"Input terlalu panjang. Maksimal {max_panjang} karakter.")
         return False
     return True
 
-def pilihan_input(prompt, pilihan_valid):
-    while True:
-        input_user = input(prompt).strip()
-        if input_user in pilihan_valid:
-            return input_user
-        if not input_user:  
-            return ""
-        print(f"Pilihan tidak valid. Silakan pilih dari: {', '.join(pilihan_valid)}")
-
 def input_varchar(prompt, max_panjang):
+    # Ambil input string; kosong diperbolehkan; validasi panjang saat diisi
+    # Pola baru: try-except untuk handle KeyboardInterrupt dan Exception
     while True:
-        input_user = input(prompt).strip()
-        if not input_user: 
+        try:
+            input_user = input(prompt).strip()
+        except KeyboardInterrupt:
+            print("\nInput dibatalkan.")
+            return ""
+        except Exception as e:
+            print(f"Error input: {e}")
+            continue
+        if not input_user:
             return input_user
         if cek_panjang_teks(input_user, max_panjang):
             return input_user
 
 def cek_password(password):
+    # Validasi password minimal 8 karakter
     if len(password) < 8:
         print("Password minimal 8 karakter.")
         return False
@@ -65,15 +69,17 @@ def cek_password(password):
 # Login & Akun
 
 def cek_login(username, password):
-    conn = buat_koneksi()
-    if not conn: return None
-    cursor = conn.cursor()
-    cursor.execute("SELECT id_akun, nama, id_peran FROM akun WHERE username=%s AND password=%s", (username, password))
-    result = cursor.fetchone()
-    conn.close()
-    return result
+    # Cek login user; return tuple data atau None
+    conn = buat_koneksi()  # Koneksi DB
+    if not conn: return None  # Gagal koneksi
+    cursor = conn.cursor()  # Buat cursor
+    cursor.execute("SELECT id_akun, nama, id_peran FROM akun WHERE username=%s AND password=%s", (username, password))  # Query cek login
+    result = cursor.fetchone()  # Ambil hasil
+    conn.close()  # Tutup koneksi
+    return result  # Return data
 
 def cek_verifikasi_toko(user_id):
+    # Ambil status verifikasi toko untuk akun penjual; None jika koneksi gagal
     conn = buat_koneksi()
     if not conn: return None
     cursor = conn.cursor()
@@ -83,38 +89,41 @@ def cek_verifikasi_toko(user_id):
     return result
 
 def daftar_user_baru(nama, username, password, telepon, email, peran_id):
+    # Insert akun baru. Jika gagal (exception), kembalikan None. Tutup koneksi di finally.
     conn = buat_koneksi()
     if not conn: return None
     cursor = conn.cursor()
     try:
-        cursor.execute("""INSERT INTO akun (nama, username, password, nomor_telepon, email, id_peran) 
-                       VALUES (%s,%s,%s,%s,%s,%s) RETURNING id_akun""", 
+        cursor.execute("""INSERT INTO akun (nama, username, password, nomor_telepon, email, id_peran)
+                       VALUES (%s,%s,%s,%s,%s,%s) RETURNING id_akun""",
                        (nama, username, password, telepon, email, peran_id))
         id_user_baru = cursor.fetchone()[0]
         return id_user_baru
     except:
         return None
-    finally:
+    finally:  # Pola baru: finally memastikan koneksi DB selalu ditutup meski ada error
         conn.close()
 
 def daftar_toko_baru(nama_toko, nik, kartu_keluarga, bukti_usaha, ktp, user_id, alamat_id):
+    # Insert profil penjual baru. True jika sukses, False jika exception.
     conn = buat_koneksi()
     if not conn: return False
     cursor = conn.cursor()
     try:
-        cursor.execute("""INSERT INTO profil_penjual (nama_toko, nik, nomor_kk, bukti_usaha, 
-                       dokumen_kelengkapan, verifikasi_status, id_akun, id_alamat) 
-                          VALUES (%s, %s, %s, %s, %s, false, %s, %s)""", 
+        cursor.execute("""INSERT INTO profil_penjual (nama_toko, nik, nomor_kk, bukti_usaha,
+                       dokumen_kelengkapan, verifikasi_status, id_akun, id_alamat)
+                          VALUES (%s, %s, %s, %s, %s, false, %s, %s)""",
                        (nama_toko, nik, kartu_keluarga, bukti_usaha, ktp, user_id, alamat_id))
         return True
     except:
         return False
-    finally:
+    finally:  # Pola baru: try-except-finally untuk error handling
         conn.close()
 
 # Alamat/Wilayah
 
 def ambil_semua_provinsi():
+    # Jika koneksi gagal -> [], jika berhasil -> list provinsi
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -124,6 +133,7 @@ def ambil_semua_provinsi():
     return result
 
 def ambil_kabupaten(provinsi_id):
+    # Ambil kabupaten berdasarkan id_provinsi
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -133,6 +143,7 @@ def ambil_kabupaten(provinsi_id):
     return result
 
 def ambil_kecamatan(kabupaten_id):
+    # Ambil kecamatan berdasarkan id_kabupaten
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -142,6 +153,7 @@ def ambil_kecamatan(kabupaten_id):
     return result
 
 def tambah_alamat(detail_alamat, kecamatan_id):
+    # Insert alamat baru dan kembalikan id_alamat
     conn = buat_koneksi()
     if not conn: return None
     cursor = conn.cursor()
@@ -155,6 +167,7 @@ def tambah_alamat(detail_alamat, kecamatan_id):
 # Verifikasi
 
 def ambil_toko_belum_verifikasi():
+    # Ambil daftar toko yang belum diverifikasi lengkap dengan informasi pemilik dan alamat
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -188,6 +201,7 @@ def ambil_toko_belum_verifikasi():
     return result
 
 def verifikasi_toko(toko_id):
+    # Update status verifikasi toko menjadi true untuk id_profil_penjual tertentu
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -197,6 +211,7 @@ def verifikasi_toko(toko_id):
 # Laporan & Transaksi Global
 
 def laporan_penjualan_per_toko():
+    # Ambil ringkasan penjualan per toko (jumlah transaksi, total pendapatan) untuk pesanan selesai
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -219,6 +234,7 @@ def laporan_penjualan_per_toko():
     return result
 
 def ambil_semua_transaksi(kode_pesanan=None):
+    # Jika kode_pesanan diisi -> filter berdasarkan kode; jika tidak -> tampilkan semua dan urutkan tanggal
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -233,10 +249,11 @@ def ambil_semua_transaksi(kode_pesanan=None):
         JOIN status_pesanan sp ON p.id_status_pesanan = sp.id_status_pesanan
     """
     
-    if kode_pesanan:
+    # Pola baru: conditional query building
+    if kode_pesanan:  # Cabang: filter berdasarkan kode
         query += " WHERE p.kode_pemesanan = %s"
         cursor.execute(query, (kode_pesanan,))
-    else:
+    else:  # Cabang: tampilkan semua -> urutkan tanggal
         query += " ORDER BY p.tanggal_pemesanan ASC"
         cursor.execute(query)
     
@@ -245,33 +262,17 @@ def ambil_semua_transaksi(kode_pesanan=None):
     return result
 
 def update_status_pesanan(pesanan_id, status_id_baru):
+    # Update status pesanan global berdasarkan id_pesanan
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
     cursor.execute("UPDATE pesanan SET id_status_pesanan = %s WHERE id_pesanan = %s", (status_id_baru, pesanan_id))
     conn.close()
 
-def ambil_semua_status_pesanan():
-    conn = buat_koneksi()
-    if not conn: return []
-    cursor = conn.cursor()
-    cursor.execute("SELECT id_status_pesanan, pilihan_status FROM status_pesanan ORDER BY id_status_pesanan")
-    result = cursor.fetchall()
-    conn.close()
-    return result
-
-def ambil_semua_metode_pembayaran():
-    conn = buat_koneksi()
-    if not conn: return []
-    cursor = conn.cursor()
-    cursor.execute("SELECT id_metode_pembayaran, nama_metode FROM metode_pembayaran ORDER BY id_metode_pembayaran")
-    result = cursor.fetchall()
-    conn.close()
-    return result
-
 # Kategori
 
 def ambil_semua_kategori():
+    # Ambil kategori aktif (is_deleted=false)
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -281,6 +282,7 @@ def ambil_semua_kategori():
     return result
 
 def ambil_semua_kategori_admin():
+    # Ambil semua kategori untuk admin (termasuk yang ditandai dihapus)
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -290,6 +292,7 @@ def ambil_semua_kategori_admin():
     return result
 
 def tambah_kategori(nama):
+    # Insert kategori baru
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -297,6 +300,7 @@ def tambah_kategori(nama):
     conn.close()
 
 def update_kategori(kategori_id, nama_baru, pulihkan=False):
+    # Update nama kategori; jika pulihkan=True, sekaligus set is_deleted=False
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -307,6 +311,7 @@ def update_kategori(kategori_id, nama_baru, pulihkan=False):
     conn.close()
 
 def hapus_kategori(kategori_id):
+    # Soft delete kategori (tandai is_deleted=True)
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -316,6 +321,7 @@ def hapus_kategori(kategori_id):
 # Aduan
 
 def ambil_semua_aduan():
+    # Ambil daftar aduan terbaru dengan informasi pengirim dan perannya
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -334,6 +340,7 @@ def ambil_semua_aduan():
 # Profil Toko
 
 def ambil_toko_by_user(user_id):
+    # Ambil id profil penjual dan nama toko berdasarkan id_akun
     conn = buat_koneksi()
     if not conn: return None
     cursor = conn.cursor()
@@ -345,6 +352,7 @@ def ambil_toko_by_user(user_id):
 # Produk (Inventaris)
 
 def ambil_produk_toko(toko_id):
+    # Ambil daftar produk aktif milik toko beserta stok dan harga
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -355,13 +363,15 @@ def ambil_produk_toko(toko_id):
     return result
 
 def tambah_produk_baru(nama, harga, stok, diskon, deskripsi, tanggal_kadaluarsa, batas_ambil, kategori_id, toko_id):
+    # Insert produk baru. Jika gagal (exception) -> False. Koneksi ditutup di finally.
+    # Pola baru: try-except-finally untuk error handling
     conn = buat_koneksi()
     if not conn: return False
     cursor = conn.cursor()
     try:
-        cursor.execute("""INSERT INTO produk (nama_produk, harga_per_produk, stok_produk, diskon, deskripsi, tanggal_kadaluarsa, 
-                       batas_waktu_pengambilan, id_kategori, id_profil_penjual, is_deleted) 
-                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, false)""", 
+        cursor.execute("""INSERT INTO produk (nama_produk, harga_per_produk, stok_produk, diskon, deskripsi, tanggal_kadaluarsa,
+                       batas_waktu_pengambilan, id_kategori, id_profil_penjual, is_deleted)
+                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, false)""",
                        (nama, harga, stok, diskon, deskripsi, tanggal_kadaluarsa, batas_ambil, kategori_id, toko_id))
         return True
     except Exception as e:
@@ -371,6 +381,8 @@ def tambah_produk_baru(nama, harga, stok, diskon, deskripsi, tanggal_kadaluarsa,
         conn.close()
 
 def update_data_produk(produk_id, nama_kolom, nilai_baru,toko_id):
+    # Update satu kolom data produk milik toko tertentu
+    # Pola baru: f-string untuk dynamic query
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -379,6 +391,7 @@ def update_data_produk(produk_id, nama_kolom, nilai_baru,toko_id):
     conn.close()
 
 def hapus_produk(produk_id, toko_id):
+    # Soft delete produk milik toko (is_deleted=true)
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -388,6 +401,7 @@ def hapus_produk(produk_id, toko_id):
 # Pesanan Masuk
 
 def ambil_pesanan_masuk(toko_id):
+    # Ambil daftar pesanan status menunggu untuk satu toko
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -404,6 +418,7 @@ def ambil_pesanan_masuk(toko_id):
     return result
 
 def update_status_pesanan_penjual(pesanan_id, status_id_baru, toko_id):
+    # Update status pesanan oleh penjual (dibatasi hanya pesanan milik toko terkait)
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -414,6 +429,7 @@ def update_status_pesanan_penjual(pesanan_id, status_id_baru, toko_id):
 # Laporan Toko
 
 def ambil_statistik_toko(toko_id):
+    # Ambil ringkasan: jumlah produk aktif, jumlah transaksi selesai, total pendapatan, dan 5 transaksi terakhir
     conn = buat_koneksi()
     if not conn: return (0, 0, 0, [])
     cursor = conn.cursor()
@@ -440,6 +456,7 @@ def ambil_statistik_toko(toko_id):
 # Ulasan Toko
 
 def ambil_ulasan_toko(toko_id):
+    # Ambil daftar ulasan untuk produk milik toko
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -454,6 +471,7 @@ def ambil_ulasan_toko(toko_id):
     return result
 
 def kirim_balasan_ulasan(isi_balasan, ulasan_id):
+    # Update kolom balasan pada satu ulasan
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
@@ -461,6 +479,7 @@ def kirim_balasan_ulasan(isi_balasan, ulasan_id):
     conn.close()
 
 def cek_kepemilikan_ulasan(ulasan_id, toko_id):
+    # Cek apakah ulasan tersebut milik produk toko tertentu
     conn = buat_koneksi()
     if not conn: return None
     cursor = conn.cursor()
@@ -474,6 +493,7 @@ def cek_kepemilikan_ulasan(ulasan_id, toko_id):
 # Produk & Cari
 
 def cari_produk_pembeli(sql_tambahan="", parameter=()):
+    # Bangun query dasar, tambahkan filter opsional jika disediakan, lalu eksekusi
     conn = buat_koneksi()
     if not conn: return []
     cursor = conn.cursor()
@@ -485,7 +505,8 @@ def cari_produk_pembeli(sql_tambahan="", parameter=()):
         LEFT JOIN kategori k ON p.id_kategori=k.id_kategori WHERE p.stok_produk>0 AND p.is_deleted=false
     """
     
-    if sql_tambahan: 
+    # Pola baru: conditional query building
+    if sql_tambahan:  # Jika ada filter tambahan, gabungkan ke query
         query += f" AND {sql_tambahan}"
     
     query += " ORDER BY p.tanggal_kadaluarsa ASC"
@@ -495,73 +516,68 @@ def cari_produk_pembeli(sql_tambahan="", parameter=()):
     conn.close()
     return result
 
-def ambil_detail_produk(produk_id):
-    conn = buat_koneksi()
-    if not conn: return None
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT p.id_produk, p.nama_produk, p.harga_per_produk, p.stok_produk, p.diskon, 
-               p.deskripsi, p.tanggal_kadaluarsa, p.batas_waktu_pengambilan,
-               pp.nama_toko, k.nama_kategori
-        FROM produk p 
-        JOIN profil_penjual pp ON p.id_profil_penjual = pp.id_profil_penjual
-        JOIN kategori k ON p.id_kategori = k.id_kategori
-        WHERE p.id_produk = %s AND p.is_deleted = false
-    """, (produk_id,))
-    result = cursor.fetchone()
-    conn.close()
-    return result
-
 # Transaksi
 
 def proses_checkout_transaksi(daftar_item, user_id):
-    conn = buat_koneksi()
-    if not conn: return None
-    cursor = conn.cursor()
+    # Buat pesanan + detail + transaksi dari daftar item; jika terjadi error, kembalikan None
+    # Parameter: daftar_item (list dict keranjang), user_id (id pembeli)
+    # Return: nama_toko jika sukses, None jika gagal
+    conn = buat_koneksi()  # Buat koneksi DB
+    if not conn: return None  # Jika koneksi gagal, hentikan
+    cursor = conn.cursor()  # Buat cursor untuk eksekusi query
     try:
-        list_id_produk = tuple(item['id'] for item in daftar_item)
-        cursor.execute("""SELECT MIN(p.batas_waktu_pengambilan), MAX(pp.nama_toko) 
-            FROM produk p JOIN profil_penjual pp ON p.id_profil_penjual = pp.id_profil_penjual 
-            WHERE p.id_produk IN %s""", (list_id_produk,))
-        info_toko = cursor.fetchone()
-       
-        cursor.execute("""INSERT INTO pesanan (kode_pemesanan, tanggal_pemesanan, batas_pengambilan, id_profil_penjual, id_akun, id_status_pesanan) 
-                       VALUES ('TMP', CURRENT_DATE, %s, %s, %s, 1) RETURNING id_pesanan""", 
-                       (info_toko[0], daftar_item[0]['pid'], user_id))
-        id_pesanan_baru = cursor.fetchone()[0]
-        
+        # Ambil batas pengambilan terkecil dan nama toko dari produk di keranjang
+        # Pola baru: list comprehension ke tuple untuk query IN
+        list_id_produk = tuple(item['id'] for item in daftar_item)  # Buat tuple id_produk untuk query IN
+        cursor.execute("""SELECT MIN(p.batas_waktu_pengambilan), MAX(pp.nama_toko)
+            FROM produk p JOIN profil_penjual pp ON p.id_profil_penjual = pp.id_profil_penjual
+            WHERE p.id_produk IN %s""", (list_id_produk,))  # Query untuk info toko
+        info_toko = cursor.fetchone()  # Fetch hasil (batas_ambil, nama_toko)
+
+        # Insert pesanan baru dengan kode sementara 'TMP'
+        cursor.execute("""INSERT INTO pesanan (kode_pemesanan, tanggal_pemesanan, batas_pengambilan, id_profil_penjual, id_akun, id_status_pesanan)
+                       VALUES ('TMP', CURRENT_DATE, %s, %s, %s, 1) RETURNING id_pesanan""",
+                       (info_toko[0], daftar_item[0]['id_penjual'], user_id))  # Parameter: batas_ambil, id_penjual, user_id
+        id_pesanan_baru = cursor.fetchone()[0]  # Ambil id_pesanan yang baru dibuat
+
+        # Update kode pesanan menjadi 'WTK-{id}'
         cursor.execute("UPDATE pesanan SET kode_pemesanan=%s WHERE id_pesanan=%s", (f"WTK-{id_pesanan_baru}", id_pesanan_baru))
-        
-        total_harga = 0
-        for item in daftar_item:
-            subtotal = item['qty'] * item['hrg']
-            total_harga += subtotal
-            cursor.execute("INSERT INTO detail_pesanan (jumlah, harga_saat_beli, diskon, id_pesanan, id_produk) VALUES (%s,%s,0,%s,%s)", 
+
+        total_harga = 0  # Inisialisasi total harga
+        for item in daftar_item:  # Loop setiap item di keranjang
+            subtotal = item['qty'] * item['hrg']  # Hitung subtotal per item
+            total_harga += subtotal  # Tambahkan ke total
+            # Insert detail pesanan
+            cursor.execute("INSERT INTO detail_pesanan (jumlah, harga_saat_beli, diskon, id_pesanan, id_produk) VALUES (%s,%s,0,%s,%s)",
                            (item['qty'], item['hrg'], id_pesanan_baru, item['id']))
+            # Kurangi stok produk
             cursor.execute("UPDATE produk SET stok_produk=stok_produk-%s WHERE id_produk=%s", (item['qty'], item['id']))
-        
-        cursor.execute("""INSERT INTO transaksi (tanggal_pembayaran, jumlah, id_pesanan, id_metode_pembayaran) 
+
+        # Insert transaksi dengan total harga
+        cursor.execute("""INSERT INTO transaksi (tanggal_pembayaran, jumlah, id_pesanan, id_metode_pembayaran)
                        VALUES (CURRENT_DATE, %s, %s, 1)""", (total_harga, id_pesanan_baru))
-        return info_toko[1]
+        return info_toko[1]  # Return nama toko sebagai konfirmasi sukses
     except Exception as e:
-        print(f"Error: {e}")
-        return None
+        print(f"Error: {e}")  # Print error jika terjadi exception
+        return None  # Return None jika gagal
     finally:
-        conn.close()
+        conn.close()  # Pastikan koneksi selalu ditutup
 
 def ambil_riwayat_pesanan_pembeli(user_id):
-    conn = buat_koneksi()
-    if not conn: return []
-    cursor = conn.cursor()
-    cursor.execute("""SELECT ps.id_pesanan, ps.kode_pemesanan, pp.nama_toko, st.pilihan_status, tr.jumlah FROM pesanan ps 
-                   JOIN profil_penjual pp ON ps.id_profil_penjual=pp.id_profil_penjual 
-                   JOIN status_pesanan st ON ps.id_status_pesanan=st.id_status_pesanan 
-                   JOIN transaksi tr ON ps.id_pesanan=tr.id_pesanan WHERE ps.id_akun=%s ORDER BY ps.id_pesanan DESC""", (user_id,))
-    result = cursor.fetchall()
-    conn.close()
-    return result
+    # Ambil riwayat pesanan pembeli diurutkan dari terbaru
+    conn = buat_koneksi()  
+    if not conn: return []  
+    cursor = conn.cursor() 
+    cursor.execute("""SELECT ps.id_pesanan, ps.kode_pemesanan, pp.nama_toko, st.pilihan_status, tr.jumlah FROM pesanan ps
+                   JOIN profil_penjual pp ON ps.id_profil_penjual=pp.id_profil_penjual
+                   JOIN status_pesanan st ON ps.id_status_pesanan=st.id_status_pesanan
+                   JOIN transaksi tr ON ps.id_pesanan=tr.id_pesanan WHERE ps.id_akun=%s ORDER BY ps.id_pesanan DESC""", (user_id,)) 
+    result = cursor.fetchall() 
+    conn.close()  
+    return result 
 
 def ambil_detail_pesanan(pesanan_id):
+    # Ambil header (toko & alamat) dan item pesanan dari satu pesanan
     conn = buat_koneksi()
     if not conn: return (None, [])
     cursor = conn.cursor()
@@ -576,6 +592,7 @@ def ambil_detail_pesanan(pesanan_id):
     return header, items
 
 def ambil_status_pesanan(pesanan_id):
+    # Ambil status (id_status_pesanan) untuk satu id_pesanan
     conn = buat_koneksi()
     if not conn: return None
     cursor = conn.cursor()
@@ -585,6 +602,7 @@ def ambil_status_pesanan(pesanan_id):
     return result
 
 def batalkan_pesanan_pembeli(pesanan_id):
+    # Set status pesanan ke batal dan kembalikan stok produk; jika error -> False
     conn = buat_koneksi()
     if not conn: return False
     cursor = conn.cursor()
@@ -592,18 +610,19 @@ def batalkan_pesanan_pembeli(pesanan_id):
         cursor.execute("UPDATE pesanan SET id_status_pesanan=3 WHERE id_pesanan=%s", (pesanan_id,))
         cursor.execute("SELECT id_produk, jumlah FROM detail_pesanan WHERE id_pesanan=%s", (pesanan_id,))
         items = cursor.fetchall()
-        for item in items:
+        for item in items:  # Untuk setiap item pada pesanan, kembalikan stok
             cursor.execute("UPDATE produk SET stok_produk=stok_produk+%s WHERE id_produk=%s", (item[1], item[0]))
         return True
     except:
         return False
-    finally:
+    finally:  # Pola baru: finally memastikan koneksi DB selalu ditutup meski ada error
         conn.close()
 
 
 # Interaksi
 
 def kirim_ulasan_pembeli(rating, komentar, produk_id, user_id):
+    # Insert ulasan baru dari pembeli; True jika sukses, False jika gagal
     conn = buat_koneksi()
     if not conn: return False
     cursor = conn.cursor()
@@ -612,10 +631,11 @@ def kirim_ulasan_pembeli(rating, komentar, produk_id, user_id):
         return True
     except:
         return False
-    finally:
+    finally:  # Pola baru: finally memastikan koneksi DB selalu ditutup meski ada error
         conn.close()
 
 def kirim_aduan(subjek, deskripsi, user_id):
+    # Insert aduan baru dari pengguna
     conn = buat_koneksi()
     if not conn: return
     cursor = conn.cursor()
