@@ -11,7 +11,6 @@ import pembeli as pb          # Mengimpor modul pembeli.py sebagai pb (menu dan 
 # - keranjang: list item yang akan dibeli (khusus pembeli)
 SESI = {"id": None, "nama": None, "peran": None, "keranjang": []}
 
-
 def input_alamat():
     # Memilih alamat bertingkat (provinsi->kabupaten->kecamatan->detail) lalu simpan, mengembalikan id_alamat atau None
     print("\n--- PILIH LOKASI ---")  # Judul bagian pemilihan alamat
@@ -298,44 +297,46 @@ def login():
 def main():
     # Menampilkan menu utama aplikasi dan menangani navigasi hingga pengguna memilih keluar
     while True:  # Loop tak hingga sampai user memilih keluar
-        db.bersihkan_layar()  # db.bersihkan_layar: membersihkan tampilan terminal agar rapi setiap iterasi
-        print('''
+        try:  # Pembungkus utama untuk menangkap KeyboardInterrupt global
+            db.bersihkan_layar()  # db.bersihkan_layar: membersihkan tampilan terminal agar rapi setiap iterasi
+            print('''
 ==============================================
-          SELAMAT DATANG DI WARTEK!       
-   Yuk bantu kurangi limbah pangan sambil     
-               hemat belanja.                 
+          SELAMAT DATANG DI WARTEK!
+   Yuk bantu kurangi limbah pangan sambil
+               hemat belanja.
 ==============================================
 1. Daftar
 2. Masuk
 3. Keluar''')  # Teks menu utama
-        
-        try:
-            pilihan = input("Pilih menu: ").strip()  # Ambil pilihan menu dari user
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
-        except Exception as e:
-            print(f"Error input: {e}")
-            continue
 
-        if pilihan == '1':  # Jika pilih 1 -> daftar akun baru
-            daftar()  # Panggil proses pendaftaran
-        elif pilihan == '2':  # Jika pilih 2 -> login
-            login()  # Panggil proses login
-        elif pilihan == '3':  # Jika pilih 3 -> keluar aplikasi
-            print("\nTerima kasih telah menggunakan WARTEK!")
-            break  # Keluar dari loop -> program selesai
-        else:  # Jika input bukan 1-3
-            print("Pilihan tidak valid.")
             try:
-                input("Tekan ENTER untuk melanjutkan...")
+                pilihan = input("Pilih menu: ").strip()  # Ambil pilihan menu dari user
             except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
+                print("\n\nProgram dihentikan paksa (Ctrl+C).")
+                print("Kembali ke menu utama...")
+                input("Tekan ENTER untuk restart...")
                 continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
 
+            if not pilihan:  # Jika kosong, ulangi
+                continue
+
+            if pilihan == '1':  # Jika pilih 1 -> daftar akun baru
+                daftar()  # Panggil proses pendaftaran
+            elif pilihan == '2':  # Jika pilih 2 -> login
+                login()  # Panggil proses login
+            elif pilihan == '3':  # Jika pilih 3 -> keluar aplikasi
+                print("\nTerima kasih telah menggunakan WARTEK!")
+                break  # Keluar dari loop -> program selesai
+            else:  # Jika input bukan 1-3
+                print("Pilihan tidak valid.")
+                input("Tekan ENTER untuk melanjutkan...")
+        except KeyboardInterrupt:  # Penangkap global
+            print("\n\nProgram dihentikan paksa (Ctrl+C).")
+            print("Kembali ke menu utama...")
+            input("Tekan ENTER untuk restart...")
 
 # Memanggil fungsi main() agar program langsung berjalan saat file ini dieksekusi
 main()

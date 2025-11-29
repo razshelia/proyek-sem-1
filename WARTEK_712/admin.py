@@ -2,7 +2,6 @@
 from tabulate import tabulate
 import query as db
 
-
 def dashboard_admin(sesi):
     # Menampilkan menu admin dan mengarahkan ke fitur yang dipilih sampai logout
     while True:  # Loop menu utama admin; terus berjalan hingga pengguna memilih Logout (opsi 6)
@@ -16,8 +15,18 @@ def dashboard_admin(sesi):
 5. Lihat Aduan
 6. Logout''')
         
-        pilihan = input("Silakan pilih aksi yang menarik: ").strip()  # Ambil pilihan menu
-        
+        try:
+            pilihan = input("Silakan pilih aksi yang menarik: ").strip()  # Ambil pilihan menu
+        except KeyboardInterrupt:
+            print("\nInput dibatalkan.")
+            continue
+        except Exception as e:
+            print(f"Error input: {e}")
+            continue
+
+        if not pilihan:  # Jika kosong, ulangi
+            continue
+
         if pilihan == '1':  # Masuk ke fitur verifikasi penjual (mitra)
             verifikasi_penjual()
         elif pilihan == '2':  # Masuk ke fitur laporan penjualan per toko

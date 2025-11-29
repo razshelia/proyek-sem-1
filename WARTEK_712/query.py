@@ -5,10 +5,10 @@ import os
 
 DB_CONFIG = {
     'host': 'localhost',
-    'port': '7721',              
+    'port': '5432',              
     'user': 'postgres',          
-    'password': 'OLAA12', 
-    'database': 'wartek_ddl'   
+    'password': '22rachel555', 
+    'database': 'WARTEK2'   
 }
 
 def buat_koneksi():

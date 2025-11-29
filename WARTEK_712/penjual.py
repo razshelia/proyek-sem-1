@@ -2,7 +2,6 @@
 from tabulate import tabulate
 import query as db
 
-
 def dashboard_penjual(sesi):
     # Menampilkan menu dashboard penjual dan mengarahkan ke fitur yang dipilih hingga logout
     toko = db.ambil_toko_by_user(sesi['id'])  # db.ambil_toko_by_user: ambil profil toko berdasarkan id akun
@@ -29,6 +28,9 @@ def dashboard_penjual(sesi):
             continue
         except Exception as e:
             print(f"Error input: {e}")
+            continue
+
+        if not pilihan:  # Jika kosong, ulangi
             continue
 
         if pilihan == '1':  # Jika pilih 1, masuk ke menu inventaris produk
@@ -92,6 +94,9 @@ def menu_inventaris(toko_id):
             continue
         except Exception as e:
             print(f"Error input: {e}")
+            continue
+
+        if not pilihan:  # Jika kosong, ulangi
             continue
 
         if pilihan == '4':  # Jika pilih 4 -> kembali ke dashboard penjual
@@ -351,7 +356,10 @@ def menu_pesanan(toko_id):
         print("3. Kembali")  # Kembali ke menu sebelumnya
         
         pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan aksi
-        
+
+        if not pilihan:  # Jika kosong, ulangi
+            continue
+
         if pilihan == '3':  # Jika pilih 3
             return  # Keluar dari menu pesanan
         
@@ -467,9 +475,19 @@ def menu_ulasan(toko_id):
         if ulasan:  # Jika ada ulasan, tampilkan menu aksi
             print("\n1. Balas Ulasan")  # Aksi membalas
             print("2. Kembali")  # Aksi kembali
-            
-            pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan pengguna
-            
+
+            try:
+                pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan pengguna
+            except KeyboardInterrupt:
+                print("\nInput dibatalkan.")
+                continue
+            except Exception as e:
+                print(f"Error input: {e}")
+                continue
+
+            if not pilihan:  # Jika kosong, ulangi
+                continue
+
             if pilihan == '2':  # Jika pilih kembali
                 return  # Keluar dari menu ulasan
             elif pilihan == '1':  # Jika pilih balas ulasan

@@ -2,7 +2,6 @@
 from tabulate import tabulate
 import query as db
 
-
 def dashboard_pembeli(sesi):
     # Menampilkan menu utama pembeli dan mengarahkan ke fitur hingga logout
     while True:  # Loop menu utama; terus berulang sampai pengguna memilih Logout (opsi 5)
@@ -22,7 +21,10 @@ def dashboard_pembeli(sesi):
 5. Logout''')
         
         pilihan = input("Silakan pilih aksi yang menarik: ").strip()  # Ambil input pilihan menu
-        
+
+        if not pilihan:  # Jika kosong, ulangi
+            continue
+
         if pilihan == '1':  # Jika pilih 1, masuk ke fitur pencarian dan filter produk
             menu_cari_produk(sesi)
         elif pilihan == '2':  # Jika pilih 2, masuk ke tampilan keranjang dan proses checkout
@@ -42,21 +44,14 @@ def dashboard_pembeli(sesi):
 def menu_cari_produk(sesi):  # Fungsi utama menu pencarian produk
     db.bersihkan_layar()   # db.bersihkan_layar: membersihkan tampilan terminal
     while True:  # Loop agar menu terus tampil sampai user memilih keluar
-        try:
-            print('''
+        print('''
 --- CARI PRODUK ---
 1. Produk Promo (<7 Hari)
 2. Cari Berdasarkan Nama
 3. Filter Lokasi/Kategori
 4. Kembali''')
-            
-            pilihan = input("Pilih menu (1-4): ").strip()  # Ambil input pilihan user
-        except KeyboardInterrupt:  # Jika user tekan Ctrl+C
-            print("\nInput dibatalkan.")
-            continue
-        except Exception as e:  # Jika ada error lain
-            print(f"Error input: {e}")
-            continue
+
+        pilihan = input("Pilih menu (1-4): ").strip()  # Ambil input pilihan user
 
         # Arahkan ke fungsi sesuai pilihan
         if pilihan == "1":    # Jika pilih 1, masuk ke fitur pencarian produk promo (<7 hari)
@@ -91,11 +86,7 @@ def tampilkan_tabel(produk):  # Fungsi untuk menampilkan tabel produk
     print(tabulate(data_produk, headers=["ID", "Produk", "Toko", "Lokasi", "Asli", "Diskon", "Hemat", "Exp"], tablefmt="fancy_grid")) 
 
 def proses_pembelian(sesi, produk):  # Proses pembelian produk dari hasil pencarian
-    try:
-        beli = input("\nApakah Anda ingin membeli produk? (y/n): ").lower() #Inputkan y apabila ingin memesan produk, tidak memedulikan bentuk huruf (besar/kecil)
-    except KeyboardInterrupt:  # Jika user tekan Ctrl+C
-        print("\nInput dibatalkan.")
-        return # Kembali ke menu pencarian produk
+    beli = input("\nApakah Anda ingin membeli produk? (y/n): ").strip().lower() #Inputkan y apabila ingin memesan produk, tidak memedulikan bentuk huruf (besar/kecil)
 
     if beli != 'y':  # Jika inputan tidak y atau tidak ingin beli
         input("Tekan ENTER untuk kembali ke menu...")
@@ -106,7 +97,12 @@ def proses_pembelian(sesi, produk):  # Proses pembelian produk dari hasil pencar
         input("ID Produk salah, tekan ENTER untuk kembali...")
         return # Kembali ke menu pencarian produk
 
-    produk_terpilih = next((p for p in produk if str(p[0]) == id_produk), None)  # Cari produk sesuai kolom pertama = [0] (id_produk), next() untuk mengambil elemen pertama.
+    produk_terpilih = None  # Siapkan wadah kosong (Default None)
+    for p in produk:
+        if str(p[0]) == id_produk:
+            produk_terpilih = p
+            break
+      # Cari produk sesuai ID yang diinputkan oleh pembeli
     if not produk_terpilih:  # Jika tidak ditemukan
         print("ID produk tidak ditemukan.")
         return  # Kembali ke menu pencarian produk
@@ -209,25 +205,21 @@ def menu_keranjang(sesi):
         keranjang = sesi['keranjang']  # Ambil referensi list keranjang
         if not keranjang:  # Jika keranjang kosong
             print("Keranjang kosong.")
-            try:
-                input("Tekan ENTER untuk melanjutkan...")  # Jeda
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                return
-            # except Exception as e:
-            #     print(f"Error input: {e}")
-            #     return
-            return  # Kembali ke dashboard
-        
-        data_keranjang = []  # Siapkan data untuk tabel keranjang
-        for i, item in enumerate(keranjang):  # Loop setiap item keranjang sambil memberi nomor urut
+            input("Tekan ENTER untuk melanjutkan...")  # Jeda
+            return
+      
+        data_keranjang = []  # List kosong untuk data keranjang
+        nomor = 1            # Variabel penghitung mulai dari 1
+
+        for item in keranjang:  # Loop item tanpa indeks
             data_keranjang.append([
-                i+1,  # Nomor urut (mulai dari 1)
-                item['nama'],  # Nama produk
-                item['jumlah'],  # Jumlah dibeli
-                db.format_mata_uang(item['harga']),  # Harga per item (format Rupiah)
-                db.format_mata_uang(item['harga'] * item['jumlah'])  # Subtotal (harga*jumlah) format Rupiah
+                nomor,                                               # Nomor urut manual
+                item['nama'],                                        # Nama produk
+                item['jumlah'],                                      # Jumlah
+                db.format_mata_uang(item['harga']),                  # Harga satuan
+                db.format_mata_uang(item['harga'] * item['jumlah'])  # Subtotal
             ])
+            nomor += 1  # Nomor bertambah 1 setiap putaran
         
         print(tabulate(data_keranjang, headers=["No", "Produk", "Jumlah", "Harga", "Subtotal"], tablefmt="fancy_grid"))
         # Total estimasi seluruh item dihitung dengan penjumlahan subtotal
@@ -238,14 +230,7 @@ def menu_keranjang(sesi):
 2. Hapus Item
 3. Kembali''')
 
-        try:
-            pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan aksi keranjang
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
-        except Exception as e:
-            print(f"Error input: {e}")
-            continue
+        pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan aksi keranjang
         
         if pilihan == '3':  # Jika kembali
             return  # Keluar ke dashboard pembeli
@@ -271,14 +256,7 @@ def menu_keranjang(sesi):
                 sesi['keranjang'] = []  # Kosongkan keranjang setelah checkout
             input("Tekan ENTER untuk melanjutkan...")  # Jeda
         elif pilihan == '2':  # Hapus satu item dari keranjang
-            try:
-                input_nomor = input("Masukkan nomor item: ").strip()  # Ambil nomor urut item yang ingin dihapus
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
-            # except Exception as e:
-            #     print(f"Error input: {e}")
-            #     continue
+            input_nomor = input("Masukkan nomor item: ").strip()  # Ambil nomor urut item yang ingin dihapus
             if input_nomor and input_nomor.isdigit():  # Validasi input nomor adalah angka
                         
                 nomor_item = int(input_nomor) - 1  # Ubah ke indeks list (mulai 0)
@@ -300,14 +278,7 @@ def menu_riwayat_pesanan(sesi):
         pesanan = db.ambil_riwayat_pesanan_pembeli(sesi['id'])  # db.ambil_riwayat_pesanan_pembeli: ambil riwayat pesanan pembeli
         if not pesanan:  # Jika belum ada transaksi sebelumnya
             print("Belum ada riwayat pesanan.")
-            try:
-                input("Tekan ENTER untuk melanjutkan...")
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                return
-            except Exception as e:
-                print(f"Error input: {e}")
-                return
+            input("Tekan ENTER untuk melanjutkan...")
             return  # Keluar dari menu riwayat jika kosong
         
         data_pesanan = []  # Siapkan data untuk tabel riwayat
@@ -332,14 +303,7 @@ def menu_riwayat_pesanan(sesi):
         if pilihan == '4':  # Kembali ke dashboard pembeli
             return
 
-        try:
-            id_pesanan = input("Masukkan ID pesanan: ").strip()  # Ambil ID pesanan target
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
-        except Exception as e:
-            print(f"Error input: {e}")
-            continue
+        id_pesanan = input("Masukkan ID pesanan: ").strip()  # Ambil ID pesanan target
         if not id_pesanan:  # Jika kosong, ulangi menu
             continue
         
@@ -349,8 +313,8 @@ def menu_riwayat_pesanan(sesi):
                 db.bersihkan_layar()  # db.bersihkan_layar: membersihkan tampilan terminal
                 print(f'''
 --- DETAIL PESANAN {id_pesanan} ---
-Toko: {header[0]}")
-Alamat: {header[1]}, {header[2]}")
+Toko: {header[0]}
+Alamat: {header[1]}, {header[2]}
 Batas Ambil: {header[3]}''')
                 print("-" * 40)
                 
@@ -373,14 +337,7 @@ Batas Ambil: {header[3]}''')
         elif pilihan == '2':  # Membatalkan pesanan jika status masih menunggu
             status = db.ambil_status_pesanan(id_pesanan)  # db.ambil_status_pesanan: ambil status pesanan (id_status)
             if status and status[0] == 1:  # Hanya boleh batalkan jika status 1 (Menunggu)
-                try:
-                    konfirmasi = input("Yakin ingin membatalkan pesanan? (y/n): ").strip().lower()  # Minta konfirmasi
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    continue
-                except Exception as e:
-                    print(f"Error input: {e}")
-                    continue
+                konfirmasi = input("Yakin ingin membatalkan pesanan? (y/n): ").strip().lower()  # Minta konfirmasi
                 if konfirmasi == 'y':  # Jika setuju
                     if db.batalkan_pesanan_pembeli(id_pesanan):  # db.batalkan_pesanan_pembeli: ubah status pesanan ke batal dan restore stok
                         print("Pesanan berhasil dibatalkan.")
@@ -395,30 +352,9 @@ Batas Ambil: {header[3]}''')
         elif pilihan == '3':  # Memberi ulasan untuk pesanan yang selesai
             status = db.ambil_status_pesanan(id_pesanan)  # db.ambil_status_pesanan: ambil status pesanan (id_status)
             if status and status[0] == 2:  # Hanya bisa ulasan jika status 2 (Selesai)
-                try:
-                    rating = input("Rating (1-5): ").strip()  # Ambil rating
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    continue
-                except Exception as e:
-                    print(f"Error input: {e}")
-                    continue
-                try:
-                    komentar = input("Komentar: ").strip()  # Ambil komentar
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    continue
-                except Exception as e:
-                    print(f"Error input: {e}")
-                    continue
-                try:
-                    id_produk = input("ID Produk: ").strip()  # Ambil id produk untuk ulasan
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    continue
-                except Exception as e:
-                    print(f"Error input: {e}")
-                    continue
+                rating = input("Rating (1-5): ").strip()  # Ambil rating
+                komentar = input("Komentar: ").strip()  # Ambil komentar
+                id_produk = input("ID Produk: ").strip()  # Ambil id produk untuk ulasan
                 
                 if rating and rating in ['1','2','3','4','5'] and komentar and id_produk:  # Validasi input ulasan lengkap
                     if db.kirim_ulasan_pembeli(rating, komentar, id_produk, sesi['id']):  # db.kirim_ulasan_pembeli: simpan ulasan baru
@@ -452,11 +388,4 @@ def menu_aduan(user_id):
     
     db.kirim_aduan(subjek, deskripsi, user_id)  # db.kirim_aduan: simpan aduan baru ke database
     print("Aduan terkirim ke Admin!")
-    try:
-        input("Tekan ENTER untuk melanjutkan...")  # Jeda
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
+    input("Tekan ENTER untuk melanjutkan...")  # Jeda
