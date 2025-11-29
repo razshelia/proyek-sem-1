@@ -23,9 +23,6 @@ def dashboard_penjual(sesi):
         
         try:
             pilihan = input("Silakan pilih aksi yang menarik: ").strip()  # Ambil pilihan menu dari user
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
         except Exception as e:
             print(f"Error input: {e}")
             continue
@@ -49,9 +46,6 @@ def dashboard_penjual(sesi):
             print("Pilihan tidak valid.")  # Beri tahu bahwa input tidak sesuai
             try:
                 input("Tekan ENTER untuk melanjutkan...")  # Jeda agar pesan terbaca
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -89,9 +83,6 @@ def menu_inventaris(toko_id):
         
         try:
             pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan aksi
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
         except Exception as e:
             print(f"Error input: {e}")
             continue
@@ -111,9 +102,6 @@ def menu_inventaris(toko_id):
             print("Pilihan tidak valid.")  # Beri tahu input salah
             try:
                 input("Tekan ENTER untuk melanjutkan...")  # Jeda
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -130,9 +118,6 @@ def menu_tambah_produk(toko_id):
         
     try:
         harga = input("Harga normal: ").strip()  # Ambil input harga
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -150,9 +135,6 @@ def menu_tambah_produk(toko_id):
     
     try:
         input_diskon = input("Diskon (0-100, Enter untuk 0): ").strip()  # Ambil input diskon persen
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -160,9 +142,6 @@ def menu_tambah_produk(toko_id):
     
     try:
         deskripsi = input("Deskripsi produk: ").strip()  # Ambil deskripsi (boleh kosong)
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -176,9 +155,6 @@ def menu_tambah_produk(toko_id):
     print(tabulate(kategori, headers=["ID", "Kategori"], tablefmt="fancy_grid"))  # Tampilkan daftar kategori
     try:
         id_kategori = input("Pilih ID kategori: ").strip()  # Ambil pilihan kategori
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -198,101 +174,86 @@ def menu_tambah_produk(toko_id):
         print("Gagal menambahkan produk.")  # Gagal tambah
     input("Tekan ENTER untuk melanjutkan...")  # Jeda
 
-def menu_edit_produk(toko_id):
-    # Mengedit field produk yang dipilih: nama, harga, stok, diskon, deskripsi, tanggal, dan batas ambil
+def menu_edit_produk(toko_id):  # Fungsi untuk mengedit produk toko
+    try:  # Tangkap error input
+        id_produk = input("\nMasukkan ID produk yang ingin diedit: ").strip()  # Minta ID produk dari user
+    except Exception as e:  # Jika error input
+        print(f"Error input: {e}")  # Tampilkan error
+        return  # Keluar fungsi
+
+    if not id_produk:  # Jika ID kosong
+        return  # Keluar fungsi
+
+    produk = db.ambil_produk_toko(toko_id)  # Ambil produk milik toko
+    if not any(str(item[0]) == id_produk for item in produk):  # Jika ID tidak ada di produk toko
+        print("Produk tidak ditemukan atau bukan milik toko Anda.")  # Pesan error
+        input("Tekan ENTER untuk melanjutkan...")  # Tunggu user
+        return  # Keluar fungsi
+
+    print("\nEdit Produk (kosongkan jika tidak ingin mengubah)")  # Instruksi untuk user
+
+    nama_baru = db.input_varchar("Nama baru: ", 100)  # Input nama baru
+
+    try:  # Tangkap error input
+        harga_baru = input("Harga baru: ").strip()  # Input harga baru
+        stok_baru = input("Stok baru: ").strip()  # Input stok baru
+    except Exception:  # Jika error input
+        return  # Keluar fungsi
+
+    diskon_baru = input("Diskon baru (0-100): ").strip()  # Input diskon baru
+    deskripsi_baru = input("Deskripsi baru: ").strip()  # Input deskripsi baru
+    kadaluarsa_baru = db.input_varchar("Tanggal kadaluarsa baru (YYYY-MM-DD): ", 10)  # Input tanggal kadaluarsa
+    batas_ambil_baru = db.input_varchar("Batas pengambilan baru (YYYY-MM-DD): ", 10)  # Input batas pengambilan
+
+    perubahan = False  # Flag perubahan
+
+    # --- BAGIAN 3: Eksekusi Update ---
+    # bagian ini akan meng-update informasi produk jika ada isian baru dari user 
     try:
-        id_produk = input("\nMasukkan ID produk yang ingin diedit: ").strip()  # Ambil ID produk target
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
+        if nama_baru:
+            db.update_data_produk(id_produk, "nama_produk", nama_baru, toko_id)
+            perubahan = True
+
+        if harga_baru and harga_baru.isdigit():
+            db.update_data_produk(id_produk, "harga_per_produk", harga_baru, toko_id)
+            perubahan = True
+
+        if stok_baru and stok_baru.isdigit():
+            db.update_data_produk(id_produk, "stok_produk", stok_baru, toko_id)
+            perubahan = True
+
+        if diskon_baru and diskon_baru.isdigit():
+            # Konversi diskon ke desimal (contoh: 20 jadi 0.2)
+            db.update_data_produk(id_produk, "diskon", float(diskon_baru) / 100, toko_id)
+            perubahan = True
+
+        if deskripsi_baru:
+            db.update_data_produk(id_produk, "deskripsi", deskripsi_baru, toko_id)
+            perubahan = True
+
+        if kadaluarsa_baru:
+            db.update_data_produk(id_produk, "tanggal_kadaluarsa", kadaluarsa_baru, toko_id)
+            perubahan = True
+
+        if batas_ambil_baru:
+            db.update_data_produk(id_produk, "batas_waktu_pengambilan", batas_ambil_baru, toko_id)
+            perubahan = True
+# bagian penanganan error umum saat update
     except Exception as e:
-        print(f"Error input: {e}")
+        print(f"Error saat update produk: {e}")
+        print("Perubahan tidak dapat disimpan.")
+        input("Tekan ENTER...")
         return
-    
-    if not id_produk:  # Jika input kosong
-        return  # Kembali tanpa perubahan
-        
-    produk = db.ambil_produk_toko(toko_id)  # db.ambil_produk_toko: ambil daftar produk milik toko
-    produk_ada = False  # Flag untuk menandai apakah ID produk ada di toko
-    for item in produk:  # Cek satu per satu produk
-        if str(item[0]) == id_produk:  # Jika ID produk sama dengan input
-            produk_ada = True  # Tandai ditemukan
-            break  # Hentikan pencarian
-    
-    if not produk_ada:  # Jika tidak ditemukan
-        print("Produk tidak ditemukan.")  # Beri tahu pengguna
-        input("Tekan ENTER untuk melanjutkan...")  # Jeda
-        return  # Keluar dari fungsi
-    
-    print("\nEdit Produk (kosongkan jika tidak ingin mengubah)")  # Instruksi pengisian
-    
-    nama_baru = db.input_varchar("Nama baru: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-    try:
-        harga_baru = input("Harga baru: ").strip()  # Ambil harga baru (boleh kosong)
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
-    try:
-        stok_baru = input("Stok baru: ").strip()  # Ambil stok baru (boleh kosong)
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
-    diskon_baru = input("Diskon baru (0-100): ").strip()  # Ambil diskon baru dalam persen
-    deskripsi_baru = input("Deskripsi baru: ").strip()  # Ambil deskripsi baru (boleh kosong)
-    kadaluarsa_baru = db.input_varchar("Tanggal kadaluarsa baru: ", 10)  # db.input_varchar: input tanggal kadaluarsa
-    batas_ambil_baru = db.input_varchar("Batas pengambilan baru: ", 10)   # db.input_varchar: input batas pengambilan
-    
-    perubahan = False  # Flag untuk menandai apakah ada perubahan yang disimpan
-    
-    if nama_baru:  # Jika kolom nama diisi
-        db.update_data_produk(id_produk, "nama_produk", nama_baru)  # db.update_data_produk: update kolom produk
-        perubahan = True  # Tandai ada perubahan
-    
-    if harga_baru and harga_baru.isdigit():  # Jika kolom harga diisi dan berupa angka
-        db.update_data_produk(id_produk, "harga_per_produk", harga_baru)  # db.update_data_produk: update kolom produk
-        perubahan = True  # Tandai ada perubahan
-    
-    if stok_baru and stok_baru.isdigit():  # Jika kolom stok diisi dan berupa angka
-        db.update_data_produk(id_produk, "stok_produk", stok_baru)  # db.update_data_produk: update kolom produk
-        perubahan = True  # Tandai ada perubahan
-    
-    if diskon_baru and diskon_baru.isdigit():  # Jika kolom diskon diisi dan berupa angka
-        db.update_data_produk(id_produk, "diskon", float(diskon_baru) / 100)  # Ubah ke desimal 0-1 lalu simpan
-        perubahan = True  # Tandai ada perubahan
-    
-    if deskripsi_baru:  # Jika kolom deskripsi diisi
-        db.update_data_produk(id_produk, "deskripsi", deskripsi_baru)  # Update deskripsi produk
-        perubahan = True  # Tandai ada perubahan
-    
-    if kadaluarsa_baru:  # Jika tanggal kadaluarsa baru diisi
-        db.update_data_produk(id_produk, "tanggal_kadaluarsa", kadaluarsa_baru)  # Update tanggal kadaluarsa
-        perubahan = True  # Tandai ada perubahan
-    
-    if batas_ambil_baru:  # Jika batas waktu ambil baru diisi
-        db.update_data_produk(id_produk, "batas_waktu_pengambilan", batas_ambil_baru)  # Update batas pengambilan
-        perubahan = True  # Tandai ada perubahan
-    
-    if perubahan:  # Jika ada setidaknya satu kolom yang diubah
-        print("Produk berhasil diupdate!")  # Beri pesan sukses
-    else:  # Jika tidak ada kolom yang diubah
-        print("Tidak ada perubahan.")  # Beri tahu bahwa tidak ada perubahan yang disimpan
-    
-    input("Tekan ENTER untuk melanjutkan...")  # Jeda sebelum kembali
+
+    # --- Konfirmasi Akhir ---
+    if perubahan:
+        print("Produk berhasil diupdate!")
 
 
 def menu_hapus_produk(toko_id):
     # Menghapus (soft delete) satu produk milik toko
     try:
         id_produk = input("\nMasukkan ID produk yang ingin dihapus: ").strip()  # Ambil ID produk target
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -314,9 +275,6 @@ def menu_hapus_produk(toko_id):
     
     try:
         konfirmasi = input("Yakin ingin menghapus produk ini? (y/n): ").strip().lower()  # Minta konfirmasi
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -366,9 +324,6 @@ def menu_pesanan(toko_id):
         if not pesanan:  # Jika tidak ada pesanan, tidak bisa melakukan aksi 1/2
             try:
                 input("Tekan ENTER untuk melanjutkan...")  # Jeda
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -376,9 +331,6 @@ def menu_pesanan(toko_id):
 
         try:
             id_pesanan = input("\nMasukkan ID pesanan: ").strip()  # Ambil ID pesanan yang akan diubah
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
         except Exception as e:
             print(f"Error input: {e}")
             continue
@@ -394,9 +346,6 @@ def menu_pesanan(toko_id):
         if pilihan == '1':  # Jika pilih menandai selesai
             try:
                 konfirmasi = input("Konfirmasi pesanan selesai? (y/n): ").strip().lower()  # Minta konfirmasi
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -407,9 +356,6 @@ def menu_pesanan(toko_id):
         elif pilihan == '2':  # Jika pilih batalkan pesanan
             try:
                 konfirmasi = input("Yakin ingin membatalkan pesanan? (y/n): ").strip().lower()  # Minta konfirmasi
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -478,9 +424,6 @@ def menu_ulasan(toko_id):
 
             try:
                 pilihan = input("Pilih aksi: ").strip()  # Ambil pilihan pengguna
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -501,9 +444,6 @@ def balas_ulasan(toko_id):
     # Mengirim balasan untuk satu ulasan milik produk toko (dicek kepemilikannya terlebih dahulu)
     try:
         id_ulasan = input("\nMasukkan ID ulasan: ").strip()  # Ambil ID ulasan target
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -518,9 +458,6 @@ def balas_ulasan(toko_id):
     
     try:
         isi_balasan = input("Tulis balasan untuk pelanggan: ").strip()  # Ambil teks balasan
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -544,9 +481,6 @@ def menu_aduan(user_id):
         print("Subjek wajib diisi.")  # Beri tahu pengguna
         try:
             input("Tekan ENTER untuk melanjutkan...")  # Jeda
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -562,9 +496,6 @@ def menu_aduan(user_id):
     print("Aduan berhasil dikirim ke Admin!")  # Beri pesan sukses
     try:
         input("Tekan ENTER untuk melanjutkan...")  # Jeda
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
