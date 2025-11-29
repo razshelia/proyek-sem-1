@@ -17,9 +17,6 @@ def dashboard_admin(sesi):
         
         try:
             pilihan = input("Silakan pilih aksi yang menarik: ").strip()  # Ambil pilihan menu
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
         except Exception as e:
             print(f"Error input: {e}")
             continue
@@ -43,9 +40,6 @@ def dashboard_admin(sesi):
             print("Pilihan tidak valid.")  # Beri informasi kesalahan input
             try:
                 input("Tekan ENTER untuk melanjutkan...")  # Jeda agar pesan terbaca
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue
@@ -59,9 +53,6 @@ def verifikasi_penjual():
         print("Tidak ada toko yang perlu diverifikasi.")  # Beri informasi kosong
         try:
             input("Tekan ENTER untuk melanjutkan...")  # Jeda
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -91,9 +82,6 @@ def verifikasi_penjual():
 
     try:
         id_toko = input("\nMasukkan ID toko untuk diverifikasi (Enter untuk kembali): ").strip()  # Ambil ID toko target
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -136,9 +124,6 @@ def laporan_penjualan():
         print(tabulate(tabel, headers=["Toko", "Transaksi", "Pendapatan"], tablefmt="fancy_grid"))  # Tampilkan tabel
     try:
         input("Tekan ENTER untuk melanjutkan...")  # Jeda sebelum kembali
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -154,9 +139,6 @@ def daftar_transaksi():
 
     try:
         kode_pesanan = input("Masukkan kode pemesanan (Enter untuk semua): ").strip()  # Ambil filter opsional kode pesanan
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -166,9 +148,6 @@ def daftar_transaksi():
         print("Tidak ada transaksi.")
         try:
             input("Tekan ENTER untuk melanjutkan...")
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -194,9 +173,6 @@ def daftar_transaksi():
 
         try:
             status_baru = input("Masukkan ID status baru: ").strip()  # Ambil ID status baru
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -209,9 +185,6 @@ def daftar_transaksi():
 
     try:
         input("Tekan ENTER untuk melanjutkan...")  # Jeda
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -239,9 +212,6 @@ Pilihan Aksi:
 
         try:
             pilihan = input("Masukkan pilihan: ").strip()  # Ambil pilihan menu kelola kategori
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -269,9 +239,6 @@ Pilihan Aksi:
 
         try:
             input("Tekan ENTER untuk melanjutkan...")  # Jeda
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
         except Exception as e:
             print(f"Error input: {e}")
             continue
@@ -327,9 +294,6 @@ def lihat_aduan():
             print("ID aduan tidak ditemukan.")  # Beri informasi kesalahan
             try:
                 input("Tekan ENTER untuk melanjutkan...")  # Jeda
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                return
             except Exception as e:
                 print(f"Error input: {e}")
                 return
@@ -377,9 +341,6 @@ def tampilkan_detail_aduan(aduan):
 
     try:
         input("\nTekan ENTER untuk kembali ke daftar aduan...")  # Jeda sebelum kembali
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return

@@ -24,9 +24,6 @@ def input_alamat():
     print(tabulate(provinsi, headers=["ID","Provinsi"], tablefmt="fancy_grid"))
     try:
         id_provinsi = input("Pilih ID Provinsi: ").strip()  # Input pilihan provinsi
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return None
     except Exception as e:
         print(f"Error input: {e}")
         return None
@@ -43,9 +40,6 @@ def input_alamat():
     print(tabulate(kabupaten, headers=["ID","Kabupaten"], tablefmt="fancy_grid"))
     try:
         id_kabupaten = input("Pilih ID Kabupaten: ").strip()  # Input pilihan kabupaten
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return None
     except Exception as e:
         print(f"Error input: {e}")
         return None
@@ -62,9 +56,6 @@ def input_alamat():
     print(tabulate(kecamatan, headers=["ID","Kecamatan"], tablefmt="fancy_grid"))
     try:
         id_kecamatan = input("Pilih ID Kecamatan: ").strip()  # Input pilihan kecamatan
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return None
     except Exception as e:
         print(f"Error input: {e}")
         return None
@@ -74,9 +65,6 @@ def input_alamat():
 
     try:
         detail_alamat = input("Detail Jalan (RT/RW): ").strip()  # Input detail jalan (alamat lengkap)
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return None
     except Exception as e:
         print(f"Error input: {e}")
         return None
@@ -118,9 +106,6 @@ def daftar():
     while True:  # Loop untuk memastikan password valid; berhenti ketika password lolos validasi
         try:
             password = input("Password (minimal 8 karakter): ").strip()  # Ambil password
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -134,8 +119,6 @@ def daftar():
     # Konfirmasi password harus sama
     try:
         konfirmasi_password = input("Konfirmasi Password: ").strip()
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
         return
     except Exception as e:
         print(f"Error input: {e}")
@@ -144,9 +127,6 @@ def daftar():
         print("Password tidak sama.")
         try:
             input("Tekan ENTER untuk melanjutkan...")
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -157,9 +137,6 @@ def daftar():
     print("2. Penjual (Mitra)\n3. Pembeli (Customer)")
     try:
         input_peran = input("Pilih peran (2/3): ").strip()
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -218,17 +195,11 @@ def login():
     print("\n--- LOGIN WARTEK ---")
     try:
         username = input("Username: ").strip()
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
     try:
         password = input("Password: ").strip()
-    except KeyboardInterrupt:
-        print("\nInput dibatalkan.")
-        return
     except Exception as e:
         print(f"Error input: {e}")
         return
@@ -237,9 +208,6 @@ def login():
         print("Username dan password wajib diisi.")
         try:
             input("Tekan ENTER untuk melanjutkan...")
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return
         except Exception as e:
             print(f"Error input: {e}")
             return
@@ -257,9 +225,6 @@ def login():
                 print("Akun Penjual bermasalah.")
                 try:
                     input("Tekan ENTER untuk melanjutkan...")
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    return
                 except Exception as e:
                     print(f"Error input: {e}")
                     return
@@ -268,9 +233,6 @@ def login():
                 print(f"\nToko '{profil[1]}' belum diverifikasi Admin.")
                 try:
                     input("Tekan ENTER untuk melanjutkan...")
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    return
                 except Exception as e:
                     print(f"Error input: {e}")
                     return
@@ -311,11 +273,6 @@ def main():
 
             try:
                 pilihan = input("Pilih menu: ").strip()  # Ambil pilihan menu dari user
-            except KeyboardInterrupt:
-                print("\n\nProgram dihentikan paksa (Ctrl+C).")
-                print("Kembali ke menu utama...")
-                input("Tekan ENTER untuk restart...")
-                continue
             except Exception as e:
                 print(f"Error input: {e}")
                 continue

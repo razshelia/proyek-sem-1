@@ -43,13 +43,9 @@ def cek_panjang_teks(teks, max_panjang):
 
 def input_varchar(prompt, max_panjang):
     # Ambil input string; kosong diperbolehkan; validasi panjang saat diisi
-    # Pola baru: try-except untuk handle KeyboardInterrupt dan Exception
     while True:
         try:
             input_user = input(prompt).strip()
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            return ""
         except Exception as e:
             print(f"Error input: {e}")
             continue
