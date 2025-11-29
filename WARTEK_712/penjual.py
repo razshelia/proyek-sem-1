@@ -191,7 +191,6 @@ def menu_tambah_produk(toko_id):
         print("Produk berhasil ditambahkan!")  # Berhasil tambah
     else:
         print("Gagal menambahkan produk.")  # Gagal tambah
-    
     input("Tekan ENTER untuk melanjutkan...")  # Jeda
 
 def menu_edit_produk(toko_id):

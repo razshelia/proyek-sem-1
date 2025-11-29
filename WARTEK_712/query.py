@@ -545,13 +545,13 @@ def proses_checkout_transaksi(daftar_item, user_id):
 
         total_harga = 0  # Inisialisasi total harga
         for item in daftar_item:  # Loop setiap item di keranjang
-            subtotal = item['qty'] * item['hrg']  # Hitung subtotal per item
+            subtotal = item['jumlah'] * item['harga']  # Hitung subtotal per item
             total_harga += subtotal  # Tambahkan ke total
             # Insert detail pesanan
             cursor.execute("INSERT INTO detail_pesanan (jumlah, harga_saat_beli, diskon, id_pesanan, id_produk) VALUES (%s,%s,0,%s,%s)",
-                           (item['qty'], item['hrg'], id_pesanan_baru, item['id']))
+                           (item['jumlah'], item['harga'], id_pesanan_baru, item['id']))
             # Kurangi stok produk
-            cursor.execute("UPDATE produk SET stok_produk=stok_produk-%s WHERE id_produk=%s", (item['qty'], item['id']))
+            cursor.execute("UPDATE produk SET stok_produk=stok_produk-%s WHERE id_produk=%s", (item['jumlah'], item['id']))
 
         # Insert transaksi dengan total harga
         cursor.execute("""INSERT INTO transaksi (tanggal_pembayaran, jumlah, id_pesanan, id_metode_pembayaran)

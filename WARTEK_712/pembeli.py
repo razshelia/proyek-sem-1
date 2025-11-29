@@ -10,8 +10,8 @@ def dashboard_pembeli(sesi):
         
         print(f"Halo, {sesi['nama']}!")
         print("=" * 50)
-        # Menampilkan ringkasan jumlah item di keranjang dengan menjumlahkan qty setiap item
-        print(f"[ KERANJANG: {sum(x['qty'] for x in sesi['keranjang'])} Item ]")
+        # Menampilkan ringkasan jumlah item di keranjang dengan menjumlahkan banyaknya jumlah setiap item
+        print(f"[ KERANJANG: {sum(x['jumlah'] for x in sesi['keranjang'])} Item ]")
         print("-" * 50)
         
         print('''
@@ -39,144 +39,166 @@ def dashboard_pembeli(sesi):
 
 # === GRUP 2: FITUR CARI PRODUK ===
 
-def menu_cari_produk(sesi):
-    # Mencari produk berdasarkan promo, nama, atau filter lokasi/kategori; dapat menambah ke keranjang
-    while True:  # Loop menu pencarian; selesai jika pilih kembali (opsi 4)
-        db.bersihkan_layar()  # db.bersihkan_layar: membersihkan tampilan terminal
-        print('''
+def menu_cari_produk(sesi):  # Fungsi utama menu pencarian produk
+    db.bersihkan_layar()   # db.bersihkan_layar: membersihkan tampilan terminal
+    while True:  # Loop agar menu terus tampil sampai user memilih keluar
+        try:
+            print('''
 --- CARI PRODUK ---
 1. Produk Promo (<7 Hari)
 2. Cari Berdasarkan Nama
 3. Filter Lokasi/Kategori
 4. Kembali''')
-        
-        try:
-            pilihan = input("Silakan pilih aksi yang menarik: ").strip()  # Ambil pilihan fitur pencarian
-        except KeyboardInterrupt:
+            
+            pilihan = input("Pilih menu (1-4): ").strip()  # Ambil input pilihan user
+        except KeyboardInterrupt:  # Jika user tekan Ctrl+C
             print("\nInput dibatalkan.")
             continue
-        except Exception as e:
+        except Exception as e:  # Jika ada error lain
             print(f"Error input: {e}")
             continue
-        if pilihan == '4':  # Jika pilih kembali
-            return  # Keluar ke dashboard pembeli
-        
-        sql, params = "", []  # Inisialisasi filter dinamis untuk query pencarian
-        if pilihan == '1':  # Filter produk promo: kadaluarsa dalam 7 hari ke depan
-            sql = "p.tanggal_kadaluarsa BETWEEN CURRENT_DATE AND CURRENT_DATE + 7"
-        elif pilihan == '2':  # Pencarian produk berdasarkan nama (LIKE)
-            kata_kunci = db.input_varchar("Masukkan nama produk: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-            if kata_kunci:
-                sql = "p.nama_produk ILIKE %s"  # Gunakan ILIKE agar tidak case-sensitive
-                params = [f"%{kata_kunci}%"]
-        elif pilihan == '3':  # Filter gabungan lokasi dan/atau kategori
-            lokasi = db.input_varchar("Masukkan nama kecamatan: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-            kategori = db.ambil_semua_kategori()  # db.ambil_semua_kategori: ambil daftar kategori aktif
-            print(tabulate(kategori, headers=["ID", "Nama"], tablefmt="fancy_grid"))
-            try:
-                id_kategori = input("Pilih ID kategori (Enter untuk skip): ").strip()
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
-            except Exception as e:
-                print(f"Error input: {e}")
-                continue
-            
-            filter_list = []  # List penampung klausa filter
-            if lokasi:  # Jika user mengisi lokasi, tambahkan filter nama kecamatan
-                filter_list.append("kec.nama_kecamatan ILIKE %s")
-                params.append(f"%{lokasi}%")
-            if id_kategori and id_kategori.isdigit():  # Jika user memilih kategori valid, tambahkan filter id_kategori
-                filter_list.append("k.id_kategori=%s")
-                params.append(id_kategori)
-            if filter_list:  # Jika ada setidaknya satu filter, gabungkan dengan AND
-                sql = " AND ".join(filter_list)
-        else:  # Jika input pilihan tidak valid
-            print("Pilihan tidak valid.")  # Beri tahu kesalahan input
-            continue  # Kembali ke awal loop pencarian
-        
-        produk = db.cari_produk_pembeli(sql, params)  # db.cari_produk_pembeli: ambil produk dengan filter dinamis
-        if not produk:  # Jika tidak ada hasil sesuai filter
-            print("Produk tidak ditemukan.")
-            try:
-                input("Tekan ENTER untuk melanjutkan...")  # Jeda
-            except KeyboardInterrupt:
-                print("\nInput dibatalkan.")
-                continue
-            except Exception as e:
-                print(f"Error input: {e}")
-                continue
-            continue  # Kembali ke awal loop pencarian
 
-        data_produk = []  # Persiapkan tabel untuk tampilan hasil
-        for item in produk:  # Loop setiap produk untuk hitung harga akhir dan bentuk baris tabel
-            harga_akhir = int(item[4] * (1 - (item[5] or 0)))  # Harga setelah diskon (diskon disimpan 0..1)
-            data_produk.append([
-                item[0],  # ID Produk
-                item[1],  # Nama Produk
-                item[2],  # Nama Toko
-                item[3],  # Lokasi (kecamatan)
-                db.format_mata_uang(item[4]),  # Harga asli (format Rupiah)
-                f"{int((item[5] or 0)*100)}%",  # Diskon dalam persen
-                db.format_mata_uang(harga_akhir),  # Harga setelah diskon (format Rupiah)
-                item[7]  # Tanggal kadaluarsa
-            ])
-            
-        print(tabulate(data_produk, headers=["ID", "Produk", "Toko", "Lokasi", "Asli", "Diskon", "Hemat", "Exp"], tablefmt="fancy_grid"))
-
-        try:
-            beli = input("\nBeli produk? (y/n): ").strip().lower()  # Tanyakan apakah ingin menambahkan ke keranjang
-        except KeyboardInterrupt:
-            print("\nInput dibatalkan.")
-            continue
-        except Exception as e:
-            print(f"Error input: {e}")
-            continue
-        if beli == 'y':  # Jika ya, proses pemilihan produk dan jumlah
-            id_produk = input("Masukkan ID produk: ").strip()  # Ambil ID produk yang ingin dibeli
-            if not id_produk:  # Jika tidak diisi, kembali ke loop
-                continue
-                
-            # Cari produk yang ID-nya sesuai input
-            produk_terpilih = next((p for p in produk if str(p[0]) == id_produk), None)
-            
-            if produk_terpilih:  # Jika produk ditemukan
-                db.bersihkan_layar()  # db.bersihkan_layar: membersihkan tampilan terminal
-                print(f"--- {produk_terpilih[1]} ---")
-                print(f"Deskripsi : {produk_terpilih[9]}")
-                print(f"Toko      : {produk_terpilih[2]} ({produk_terpilih[10]}, {produk_terpilih[3]})")
-                print(f"Ambil Sblm: {produk_terpilih[11]}")
-                harga_akhir = int(produk_terpilih[4] * (1 - (produk_terpilih[5] or 0)))  # Harga setelah diskon
-                print(f"Harga     : {db.format_mata_uang(produk_terpilih[4])} -> {db.format_mata_uang(harga_akhir)}")
-
-                try:
-                    input_qty = input(f"Jumlah beli (Stok {produk_terpilih[6]}): ").strip()  # Ambil jumlah yang ingin dibeli
-                except KeyboardInterrupt:
-                    print("\nInput dibatalkan.")
-                    continue
-                except Exception as e:
-                    print(f"Error input: {e}")
-                    continue
-                if input_qty and input_qty.isdigit():  # Validasi jumlah harus diisi dan berupa angka
-                    qty = int(input_qty)
-                    if 0 < qty <= produk_terpilih[6]:  # Validasi jumlah tidak boleh melebihi stok
-                        # Simpan item ke keranjang sebagai dict yang berisi informasi penting
-                        sesi['keranjang'].append({
-                            'id': produk_terpilih[0],
-                            'nm': produk_terpilih[1],
-                            'hrg': harga_akhir,
-                            'qty': qty,
-                            'id_penjual': produk_terpilih[8]
-                        })
-                        print("Produk ditambahkan ke keranjang.")
-                    else:  # Jika jumlah melebihi stok atau nol
-                        print("Stok tidak cukup.")
-                else:  # Jika format jumlah tidak valid
-                    print("Jumlah tidak valid.")
-            else:  # Jika tidak ditemukan produk dengan ID tersebut
-                print("ID produk salah.")
-            
+        # Arahkan ke fungsi sesuai pilihan
+        if pilihan == "1":    # Jika pilih 1, masuk ke fitur pencarian produk promo (<7 hari)
+                cari_produk_promo(sesi)
+        elif pilihan == "2":  # Jika pilih 2, masuk ke fitur pencarian produk berdasar nama produk
+                cari_berdasarkan_nama(sesi)
+        elif pilihan == "3":  # Jika pilih 3, masuk ke fitur pencarian produk berdasarkan lokasi dan kategori
+                filter_lokasi_dan_kategori(sesi)
+        elif pilihan == "4":  # Jika pilih 4, keluar dari menu cari produk
+            print("Kembali ke menu utama...")
+            break  # Keluar dari loop menu
+        else:  # Jika input di luar 1-5
+            print("Pilihan tidak valid.")  # Beri info kesalahan input
             input("Tekan ENTER untuk melanjutkan...")  # Jeda agar pesan terbaca
+
+def tampilkan_tabel(produk):  # Fungsi untuk menampilkan tabel produk
+    data_produk = []  # List untuk menampung baris tabel
+    for item in produk:  # Loop setiap produk
+        harga_diskon = int(item[4] * (1 - (item[5] or 0)))  # Mengitung harga setelah diskon
+        data_produk.append([
+            item[0],  # ID Produk
+            item[1],  # Nama Produk
+            item[2],  # Nama Toko
+            item[3],  # Lokasi
+            db.format_mata_uang(item[4]),  # Harga Asli (format Rupiah)
+            f"{int((item[5] or 0) * 100)}%",  # Diskon dalam persen
+            db.format_mata_uang(harga_diskon),  # Harga Setelah Diskon
+            str(item[7])   # Tanggal Kadaluarsa
+        ])
+
+    # Cetak tabel dengan tabulate
+    print(tabulate(data_produk, headers=["ID", "Produk", "Toko", "Lokasi", "Asli", "Diskon", "Hemat", "Exp"], tablefmt="fancy_grid")) 
+
+def proses_pembelian(sesi, produk):  # Proses pembelian produk dari hasil pencarian
+    try:
+        beli = input("\nApakah Anda ingin membeli produk? (y/n): ").lower() #Inputkan y apabila ingin memesan produk, tidak memedulikan bentuk huruf (besar/kecil)
+    except KeyboardInterrupt:  # Jika user tekan Ctrl+C
+        print("\nInput dibatalkan.")
+        return # Kembali ke menu pencarian produk
+
+    if beli != 'y':  # Jika inputan tidak y atau tidak ingin beli
+        input("Tekan ENTER untuk kembali ke menu...")
+        return # Kembali ke menu pencarian produk
+
+    id_produk = input("Masukkan ID produk: ")  # pembeli menginputkan ID produk
+    if not id_produk:  # Jika bukan id produk yang di inputkan
+        input("ID Produk salah, tekan ENTER untuk kembali...")
+        return # Kembali ke menu pencarian produk
+
+    produk_terpilih = next((p for p in produk if str(p[0]) == id_produk), None)  # Cari produk sesuai kolom pertama = [0] (id_produk), next() untuk mengambil elemen pertama.
+    if not produk_terpilih:  # Jika tidak ditemukan
+        print("ID produk tidak ditemukan.")
+        return  # Kembali ke menu pencarian produk
+
+    # Menampilkan detail produk (deskripsi produk, Nama toko, alamat, kecamatan, dan batas waktu pengambilan produk)
+    print(f'''
+\n--- Detail Produk {produk_terpilih[1]} ---   
+Deskripsi : {produk_terpilih[9]}               
+Toko      : {produk_terpilih[2]} ({produk_terpilih[10]}, {produk_terpilih[3]})  
+Ambil Sebelum: {produk_terpilih[11]}''')       
+
+    harga_diskon = int(produk_terpilih[4] * (1 - (produk_terpilih[5] or 0)))  # Hitung harga setelah diskon (harga asli * (1 - diskon))
+    print(f"Harga     : {db.format_mata_uang(produk_terpilih[4])} -> {db.format_mata_uang(harga_diskon)}")  
+    # Cetak harga asli (format Rupiah) dan harga setelah diskon
+
+    jumlah_input = input(f"Jumlah beli (Stok {produk_terpilih[6]}): ")  # Meminta input jumlah produk yang ingin beli
+    if not jumlah_input.isdigit():  # Validasi: input jumlah harus berupa angka
+        print("Jumlah tidak valid.")  # Jika bukan angka, beri infomrasi 
+        return  # Keluar dari fungsi
+
+    jumlah = int(jumlah_input)  # Mengubah input string menjadi integer
+    if jumlah <= 0 or jumlah > produk_terpilih[6]:  # Validasi: jumlah harus >0 dan tidak melebihi stok
+        print("Stok tidak cukup.")  # Jika stok tidak mencukupi, beri informasi stok tidak cukup
+        return  # Keluar dari fungsi
+
+    # Tambahkan produk ke keranjang (dictionary berisi detail produk)
+    sesi['keranjang'].append({
+'id': produk_terpilih[0],       # ID produk
+'nama': produk_terpilih[1],     # Nama produk
+'harga': harga_diskon,          # Harga setelah diskon
+'jumlah': jumlah,               # Jumlah yang dibeli
+'id_penjual': produk_terpilih[8]  # ID penjual
+    })
+    print("Produk berhasil ditambahkan ke keranjang.")  # Konfirmasi bahwa produk masuk ke keranjang
+    input("Tekan ENTER untuk melanjutkan...")  # Jeda agar user bisa membaca pesan sebelum lanjut
+
+def cari_produk_promo(sesi):  # Pencarian produk promo (<7 hari)
+    db.bersihkan_layar()    # db.bersihkan_layar: membersihkan tampilan terminal
+    sql = "p.tanggal_kadaluarsa BETWEEN CURRENT_DATE AND CURRENT_DATE + 7"  # Sintaks database 
+    produk = db.cari_produk_pembeli(sql, [])  
+    if not produk:  # Jika tidak ada hasil
+        print("Tidak ada produk promo.")
+        input("Tekan ENTER untuk melanjutkan...")  # Jeda
+        return
+    tampilkan_tabel(produk)  # Tampilkan hasil
+    proses_pembelian(sesi, produk)  # Proses pembelian
+
+def cari_berdasarkan_nama(sesi):  # Pencarian produk berdasarkan nama produk
+    db.bersihkan_layar()    # db.bersihkan_layar: membersihkan tampilan terminal
+    kata_kunci = db.input_varchar("Masukkan nama produk: ", 100)  # Input kata kunci
+    if not kata_kunci:  # Jika kata kunci kosong, maka akan mengeluarkan informasi produk tidak ditemukan
+        print("Produk tidak ditemukan")
+        input("Tekan ENTER untuk kembali...") # Jeda
+        return
+    sql = "p.nama_produk ILIKE %s" # Mencari nama produk dgn ILIKE, (ILIKE digunakan agar tidak case sensitive)
+    produk = db.cari_produk_pembeli(sql, [f"%{kata_kunci}%"])
+    if not produk:  # Jika produk tidak ada, maka akan mengeluarkan informasi produk tidak ditemukan
+        print("Produk tidak ditemukan.")
+        input("Tekan ENTER untuk kembali...") # Jeda
+        return  
+    tampilkan_tabel(produk)  # Tampilkan hasil (memanggil fungsi)
+    proses_pembelian(sesi, produk)  # Proses pembelian (memanggil fungsi)
+
+def filter_lokasi_dan_kategori(sesi):  # Pencarian produk berdasarkan lokasi/kategori
+    db.bersihkan_layar()    # db.bersihkan_layar: membersihkan tampilan terminal
+
+    lokasi = db.input_varchar("Masukkan nama kecamatan: ", 100)  # Input lokasi toko berdasarkan kecamatan
+    kategori = db.ambil_semua_kategori()  # Mengambil daftar kategori dari database dengan memanggil fungsi ambil_semua_kategori()
+
+    print(tabulate(kategori, headers=["ID", "Nama"], tablefmt="fancy_grid"))  # Menampilkan kategori produk dalam bentuk tabel
+    id_kategori = input("Pilih ID kategori (Enter untuk skip): ")  # Meminta input id kategori atau tekan enter
+
+    filter_list, params = [], []   # Inisialisasi list filter SQL dan parameter query
+    if lokasi:  
+        filter_list.append("kec.nama_kecamatan ILIKE %s")  # Tambahkan filter lokasi (case-insensitive)
+        params.append(f"%{lokasi}%")  # Simpan parameter lokasi dengan wildcard untuk pencarian LIKE
+
+    if id_kategori.isdigit():  # Jika kategori valid berupa angka
+        filter_list.append("k.id_kategori=%s")  # Tambahkan filter kategori berdasarkan ID Kategori
+        params.append(id_kategori)   # Simpan parameter kategori
+
+    if not filter_list:  # Jika tidak ada filter yang dipilih, kembali
+        return
+
+    sql = " AND ".join(filter_list)   # Gabungkan semua filter dengan operator AND untuk query SQL
+    produk = db.cari_produk_pembeli(sql, params)   # Jalankan query pencarian produk dengan filter dan parameter yang sudah dibuat
+    if not produk:  # Jika hasil pencarian kosong, maka akan terdapat informasi 
+        print("Produk tidak ditemukan.")
+        input("Tekan ENTER untuk kembali...") # Jeda
+        return
+    tampilkan_tabel(produk)  # Tampilkan hasil
+    proses_pembelian(sesi, produk)  # Proses pembelian
 
 # === GRUP 3: FITUR KERANJANG & CHECKOUT ===
 
@@ -192,24 +214,24 @@ def menu_keranjang(sesi):
             except KeyboardInterrupt:
                 print("\nInput dibatalkan.")
                 return
-            except Exception as e:
-                print(f"Error input: {e}")
-                return
+            # except Exception as e:
+            #     print(f"Error input: {e}")
+            #     return
             return  # Kembali ke dashboard
         
         data_keranjang = []  # Siapkan data untuk tabel keranjang
         for i, item in enumerate(keranjang):  # Loop setiap item keranjang sambil memberi nomor urut
             data_keranjang.append([
                 i+1,  # Nomor urut (mulai dari 1)
-                item['nm'],  # Nama produk
-                item['qty'],  # Jumlah dibeli
-                db.format_mata_uang(item['hrg']),  # Harga per item (format Rupiah)
-                db.format_mata_uang(item['hrg'] * item['qty'])  # Subtotal (harga*qty) format Rupiah
+                item['nama'],  # Nama produk
+                item['jumlah'],  # Jumlah dibeli
+                db.format_mata_uang(item['harga']),  # Harga per item (format Rupiah)
+                db.format_mata_uang(item['harga'] * item['jumlah'])  # Subtotal (harga*jumlah) format Rupiah
             ])
         
-        print(tabulate(data_keranjang, headers=["#", "Produk", "Qty", "Harga", "Subtotal"], tablefmt="fancy_grid"))
+        print(tabulate(data_keranjang, headers=["No", "Produk", "Jumlah", "Harga", "Subtotal"], tablefmt="fancy_grid"))
         # Total estimasi seluruh item dihitung dengan penjumlahan subtotal
-        print(f"Total Estimasi: {db.format_mata_uang(sum(item['hrg'] * item['qty'] for item in keranjang))}")
+        print(f"Total Estimasi: {db.format_mata_uang(sum(item['harga'] * item['jumlah'] for item in keranjang))}")
         
         print('''
 \n1. Checkout
@@ -254,16 +276,16 @@ def menu_keranjang(sesi):
             except KeyboardInterrupt:
                 print("\nInput dibatalkan.")
                 continue
-            except Exception as e:
-                print(f"Error input: {e}")
-                continue
+            # except Exception as e:
+            #     print(f"Error input: {e}")
+            #     continue
             if input_nomor and input_nomor.isdigit():  # Validasi input nomor adalah angka
                         
                 nomor_item = int(input_nomor) - 1  # Ubah ke indeks list (mulai 0)
                 if 0 <= nomor_item < len(keranjang):  # Cek batas indeks agar tidak error
                     item_dihapus = keranjang[nomor_item]  # Simpan item yang akan dihapus (untuk pesan)
                     del keranjang[nomor_item]  # Hapus item dari list
-                    print(f"{item_dihapus['nm']} dihapus dari keranjang.")
+                    print(f"{item_dihapus['nama']} dihapus dari keranjang.")
                 else:  # Jika nomor di luar jangkauan
                     print("Nomor item tidak valid.")
                 
@@ -325,16 +347,17 @@ def menu_riwayat_pesanan(sesi):
             header, items = db.ambil_detail_pesanan(id_pesanan)  # db.ambil_detail_pesanan: ambil header dan item dari satu pesanan
             if header:  # Jika pesanan ditemukan
                 db.bersihkan_layar()  # db.bersihkan_layar: membersihkan tampilan terminal
-                print(f"--- DETAIL PESANAN {id_pesanan} ---")
-                print(f"Toko: {header[0]}")
-                print(f"Alamat: {header[1]}, {header[2]}")
-                print(f"Batas Ambil: {header[3]}")
+                print(f'''
+--- DETAIL PESANAN {id_pesanan} ---
+Toko: {header[0]}")
+Alamat: {header[1]}, {header[2]}")
+Batas Ambil: {header[3]}''')
                 print("-" * 40)
                 
                 total_asli = 0  # Akumulator total harga normal
                 total_bayar = 0  # Akumulator total harga saat beli (setelah diskon)
                 for item in items:  # Loop semua item pada pesanan
-                    print(f"- {item[0]} (x{item[1]})")  # Tampilkan nama dan qty
+                    print(f"- {item[0]} (x{item[1]})")  # Tampilkan nama dan jumlah
                     print(f"  Normal: {db.format_mata_uang(item[3])} | Bayar: {db.format_mata_uang(item[2])}")  # Bandingkan normal vs bayar
                     total_asli += (item[1] * item[3])  # Tambah ke total normal
                     total_bayar += (item[1] * item[2])  # Tambah ke total bayar
