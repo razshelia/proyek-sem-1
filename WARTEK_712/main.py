@@ -15,50 +15,82 @@ def input_alamat():
     # Memilih alamat bertingkat (provinsi->kabupaten->kecamatan->detail) lalu simpan, mengembalikan id_alamat atau None
     print("\n--- PILIH LOKASI ---")  # Judul bagian pemilihan alamat
 
-    provinsi = db.ambil_semua_provinsi()  # db.ambil_semua_provinsi: ambil daftar semua provinsi dari database
+    # === TAHAP 1: PROVINSI ===
+    provinsi = db.ambil_semua_provinsi()  # db.ambil_semua_provinsi: mengambil daftar semua provinsi dari database
     if not provinsi:  # Jika daftar provinsi kosong
         print("Tidak ada data provinsi.")
-        return None  # Batalkan proses input alamat
+        return None  # Proses input alamat dibatalkan
 
-    # Tampilkan daftar provinsi dalam bentuk tabel dengan header ID dan Provinsi
-    print(tabulate(provinsi, headers=["ID","Provinsi"], tablefmt="fancy_grid"))
-    id_provinsi = db.input_angka("Pilih ID Provinsi: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    # Membuat daftar ID valid (ubah ke string agar bisa dibandingkan dengan input)
+    valid_ids_prov = [str(p[0]) for p in provinsi]
 
-    if not id_provinsi:  # Jika input kosong, batalkan
-        return None
+    while True:  # Loop validasi input agar program tidak berhenti jika salah input
+        # Menampilkan daftar provinsi dalam bentuk tabel dengan header ID dan Provinsi
+        print(tabulate(provinsi, headers=["ID","Provinsi"], tablefmt="fancy_grid"))
+        id_provinsi = db.input_angka("Pilih ID Provinsi: ", 10)  # db.input_angka: mengambil input angka dengan batas panjang maksimum
 
-    kabupaten = db.ambil_kabupaten(id_provinsi)  # db.ambil_kabupaten: ambil daftar kabupaten berdasarkan id provinsi
+        if not id_provinsi:  # Jika input kosong (Enter saja), proses dibatalkan
+            return None
+        
+        if id_provinsi in valid_ids_prov:  # Mengecek apakah ID ada di daftar valid
+            break  # ID Valid, lanjut ke tahap berikutnya
+        
+        print("ID Provinsi tidak valid/tidak ditemukan. Silakan pilih dari tabel.")
+        # Loop akan mengulang meminta input jika ID tidak ditemukan
+
+    # === TAHAP 2: KABUPATEN ===
+    kabupaten = db.ambil_kabupaten(id_provinsi)  # db.ambil_kabupaten: mengambil daftar kabupaten berdasarkan id provinsi
     if not kabupaten:  # Jika daftar kabupaten kosong
-        print("Kabupaten kosong.")
-        return None  # Batalkan proses input alamat
+        print("Data Kabupaten kosong untuk provinsi ini.")
+        return None  # Proses input alamat dibatalkan
 
-    # Tampilkan daftar kabupaten
-    print(tabulate(kabupaten, headers=["ID","Kabupaten"], tablefmt="fancy_grid"))
-    id_kabupaten = db.input_angka("Pilih ID Kabupaten: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    # Membuat daftar ID valid untuk kabupaten
+    valid_ids_kab = [str(k[0]) for k in kabupaten]
 
-    if not id_kabupaten:  # Jika input kosong, batalkan
-        return None
+    while True:  # Loop validasi input kabupaten
+        # Menampilkan daftar kabupaten
+        print(tabulate(kabupaten, headers=["ID","Kabupaten"], tablefmt="fancy_grid"))
+        id_kabupaten = db.input_angka("Pilih ID Kabupaten: ", 10)  # db.input_angka: mengambil input angka
 
-    kecamatan = db.ambil_kecamatan(id_kabupaten)  # db.ambil_kecamatan: ambil daftar kecamatan berdasarkan id kabupaten
+        if not id_kabupaten:  # Jika input kosong, proses dibatalkan
+            return None
+        
+        if id_kabupaten in valid_ids_kab:  # Mengecek apakah ID kabupaten valid
+            break
+        
+        print("ID Kabupaten tidak valid. Silakan coba lagi.")
+
+    # === TAHAP 3: KECAMATAN ===
+    kecamatan = db.ambil_kecamatan(id_kabupaten)  # db.ambil_kecamatan: mengambil daftar kecamatan berdasarkan id kabupaten
     if not kecamatan:  # Jika daftar kecamatan kosong
-        print("Kecamatan kosong.")
-        return None  # Batalkan proses input alamat
+        print("Data Kecamatan kosong untuk kabupaten ini.")
+        return None  # Proses input alamat dibatalkan
 
-    # Tampilkan daftar kecamatan
-    print(tabulate(kecamatan, headers=["ID","Kecamatan"], tablefmt="fancy_grid"))
-    id_kecamatan = db.input_angka("Pilih ID Kecamatan: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    # Membuat daftar ID valid untuk kecamatan
+    valid_ids_kec = [str(k[0]) for k in kecamatan]
 
-    if not id_kecamatan:  # Jika input kosong, batalkan
-        return None
+    while True:  # Loop validasi input kecamatan
+        # Menampilkan daftar kecamatan
+        print(tabulate(kecamatan, headers=["ID","Kecamatan"], tablefmt="fancy_grid"))
+        id_kecamatan = db.input_angka("Pilih ID Kecamatan: ", 10)  # db.input_angka: mengambil input angka
 
-    detail_alamat = db.input_varchar("Detail Jalan (RT/RW): ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-    if not detail_alamat:  # Validasi wajib isi
-        print("Detail alamat wajib diisi.")
-        return None
+        if not id_kecamatan:  # Jika input kosong, proses dibatalkan
+            return None
+        
+        if id_kecamatan in valid_ids_kec:  # Mengecek apakah ID kecamatan valid
+            break
+        
+        print("ID Kecamatan tidak valid. Silakan coba lagi.")
 
-    # Simpan alamat ke database dan kembalikan id_alamat hasil simpan
-    return db.tambah_alamat(detail_alamat, id_kecamatan)  # db.tambah_alamat: simpan alamat baru dan kembalikan id_alamat
+    # === TAHAP 4: DETAIL JALAN ===
+    while True:  # Loop untuk memastikan detail alamat terisi (Mandatory)
+        detail_alamat = db.input_varchar("Detail Jalan (RT/RW): ", 100)  # db.input_varchar: mengambil input teks dengan batas panjang maksimum
+        if detail_alamat: # Pastikan tidak kosong
+            break  # Jika terisi, keluar dari loop
+        print("Detail alamat wajib diisi.")  # Pesan peringatan jika kosong
 
+    # Menyimpan alamat lengkap ke database dan mengembalikan id_alamat hasil simpan
+    return db.tambah_alamat(detail_alamat, id_kecamatan)  # db.tambah_alamat: simpan alamat baru
 
 def daftar():
     # Proses pendaftaran akun baru (data user, pilih peran, jika penjual isi data toko dan alamat)
@@ -110,7 +142,6 @@ def daftar():
     # Pilih peran
     print("\n[ PILIH PERAN ]")
     print("2. Penjual (Mitra)\n3. Pembeli (Customer)")
-    input_peran = input("Pilih peran (2/3): ").strip() # Ambil input peran
     
     while True:
         # 1. Minta input (sebagai String agar tidak crash jika diisi huruf)
