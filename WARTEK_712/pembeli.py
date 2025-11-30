@@ -118,10 +118,11 @@ Ambil Sebelum: {produk_terpilih[11]}''')
     print(f"Harga     : {db.format_mata_uang(produk_terpilih[4])} -> {db.format_mata_uang(harga_diskon)}")  
     # Cetak harga asli (format Rupiah) dan harga setelah diskon
 
-    jumlah = db.input_angka(f"Jumlah beli (Stok {produk_terpilih[6]}): ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    jumlah_str = db.input_angka(f"Jumlah beli (Stok {produk_terpilih[6]}): ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
     if not jumlah:  # Validasi: input jumlah harus berupa angka
         print("Jumlah tidak valid.")  # Jika bukan angka, beri infomrasi
         return  # Keluar dari fungsi
+    jumlah = int(jumlah_str)  # Konversi ke integer setelah validasi
     if jumlah <= 0 or jumlah > produk_terpilih[6]:  # Validasi: jumlah harus >0 dan tidak melebihi stok
         print("Stok tidak cukup.")  # Jika stok tidak mencukupi, beri informasi stok tidak cukup
         return  # Keluar dari fungsi

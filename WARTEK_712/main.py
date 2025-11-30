@@ -119,7 +119,7 @@ def daftar():
         print("Peran tidak valid.")
         return
 
-    peran = input_peran  # Sudah integer dari db.input_angka
+    peran = int(input_peran)  # Sudah integer dari db.input_angka
 
     # Simpan user baru ke database
     id_user = db.daftar_user_baru(nama, username, password, telepon, email, peran)  # db.daftar_user_baru: simpan akun baru dan kembalikan id_user
