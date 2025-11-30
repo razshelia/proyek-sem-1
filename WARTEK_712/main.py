@@ -110,16 +110,17 @@ def daftar():
     # Pilih peran
     print("\n[ PILIH PERAN ]")
     print("2. Penjual (Mitra)\n3. Pembeli (Customer)")
-    input_peran = db.input_angka("Pilih peran (2/3): ", 1)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    input_peran = input("Pilih peran (2/3): ").strip() # Ambil input peran
+
     if not input_peran:  # Validasi wajib isi
         print("Peran wajib dipilih.")
         return
+    
+    peran = int(input_peran)  # Konversi ke integer
 
-    if input_peran not in [2, 3]:  # Validasi hanya menerima 2 atau 3
+    if peran not in [2, 3]:  # Validasi hanya menerima 2 atau 3
         print("Peran tidak valid.")
         return
-
-    peran = int(input_peran)  # Sudah integer dari db.input_angka
 
     # Simpan user baru ke database
     id_user = db.daftar_user_baru(nama, username, password, telepon, email, peran)  # db.daftar_user_baru: simpan akun baru dan kembalikan id_user

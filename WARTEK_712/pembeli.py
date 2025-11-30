@@ -119,7 +119,7 @@ Ambil Sebelum: {produk_terpilih[11]}''')
     # Cetak harga asli (format Rupiah) dan harga setelah diskon
 
     jumlah_str = db.input_angka(f"Jumlah beli (Stok {produk_terpilih[6]}): ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
-    if not jumlah:  # Validasi: input jumlah harus berupa angka
+    if not jumlah_str:  # Validasi: input jumlah harus berupa angka
         print("Jumlah tidak valid.")  # Jika bukan angka, beri infomrasi
         return  # Keluar dari fungsi
     jumlah = int(jumlah_str)  # Konversi ke integer setelah validasi
