@@ -42,7 +42,7 @@ def cek_panjang_teks(teks, max_panjang):
     return True
 
 def input_varchar(prompt, max_panjang):
-    # Ambil input string; kosong diperbolehkan; validasi panjang saat diisi
+    # Input string; boleh kosong; validasi panjang maksimal
     while True:
         try:
             input_user = input(prompt).strip()
@@ -51,6 +51,21 @@ def input_varchar(prompt, max_panjang):
             continue
         if not input_user:
             return input_user
+        if cek_panjang_teks(input_user, max_panjang):
+            return input_user
+
+def input_angka(prompt, max_panjang):
+# Input angka (string digit); boleh kosong; validasi angka dan panjang maksimal
+    while True:
+        input_user = input(prompt).strip()
+        # 1. Jika kosong, kembalikan saja (biar main.py yang validasi wajib/tidaknya)
+        if not input_user:
+            return input_user
+        # 2. Validasi apakah isinya angka semua?
+        if not input_user.isdigit():
+            print("Input harus berupa angka (0-9).")
+            continue
+        # 3. Validasi panjang karakter
         if cek_panjang_teks(input_user, max_panjang):
             return input_user
 

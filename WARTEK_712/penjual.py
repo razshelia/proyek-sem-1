@@ -116,35 +116,23 @@ def menu_tambah_produk(toko_id):
         print("Nama produk wajib diisi.")  # Beri tahu bahwa nama wajib
         return  # Keluar dari proses tambah produk
         
-    try:
-        harga = input("Harga normal: ").strip()  # Ambil input harga
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
-    if not harga or not harga.isdigit():  # Validasi: harus terisi dan berupa angka bulat
+    harga = db.input_angka("Harga normal: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    if not harga:  # Validasi: harus terisi
         print("Harga harus angka.")  # Beri tahu kesalahan format
         return  # Batalkan proses
-        
-    stok = input("Stok awal: ").strip()  # Ambil input stok
-    if not stok or not stok.isdigit():  # Validasi: harus terisi dan angka bulat
+
+    stok = db.input_angka("Stok awal: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    if not stok:  # Validasi: harus terisi
         print("Stok harus angka.")  # Beri tahu kesalahan format
         return  # Batalkan proses
         
     kadaluarsa = db.input_varchar("Tanggal kadaluarsa (YYYY-MM-DD): ", 10)  # db.input_varchar: ambil input teks dengan batas
     batas_ambil = db.input_varchar("Batas pengambilan (YYYY-MM-DD): ", 10)   # db.input_varchar: ambil input teks dengan batas
     
-    try:
-        input_diskon = input("Diskon (0-100, Enter untuk 0): ").strip()  # Ambil input diskon persen
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
-    diskon = float(input_diskon) / 100 if input_diskon and input_diskon.isdigit() else 0  # Ubah ke desimal (0-1)
-    
-    try:
-        deskripsi = input("Deskripsi produk: ").strip()  # Ambil deskripsi (boleh kosong)
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
+    input_diskon = db.input_angka("Diskon (0-100, Enter untuk 0): ", 3)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    diskon = float(input_diskon) / 100 if input_diskon else 0  # Ubah ke desimal (0-1)
+
+    deskripsi = db.input_varchar("Deskripsi produk: ", 500)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
     
     kategori = db.ambil_semua_kategori()  # db.ambil_semua_kategori: ambil daftar kategori aktif
     if not kategori:  # Jika tidak ada kategori terdaftar
@@ -153,11 +141,7 @@ def menu_tambah_produk(toko_id):
     
     print("\nPilih Kategori:")
     print(tabulate(kategori, headers=["ID", "Kategori"], tablefmt="fancy_grid"))  # Tampilkan daftar kategori
-    try:
-        id_kategori = input("Pilih ID kategori: ").strip()  # Ambil pilihan kategori
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
+    id_kategori = db.input_varchar("Pilih ID kategori: ", 10)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
     
     if not id_kategori:  # Wajib memilih kategori
         print("Kategori wajib dipilih.")
@@ -193,15 +177,10 @@ def menu_edit_produk(toko_id):  # Fungsi untuk mengedit produk toko
     print("\nEdit Produk (kosongkan jika tidak ingin mengubah)")  # Instruksi untuk user
 
     nama_baru = db.input_varchar("Nama baru: ", 100)  # Input nama baru
-
-    try:  # Tangkap error input
-        harga_baru = input("Harga baru: ").strip()  # Input harga baru
-        stok_baru = input("Stok baru: ").strip()  # Input stok baru
-    except Exception:  # Jika error input
-        return  # Keluar fungsi
-
-    diskon_baru = input("Diskon baru (0-100): ").strip()  # Input diskon baru
-    deskripsi_baru = input("Deskripsi baru: ").strip()  # Input deskripsi baru
+    harga_baru = db.input_angka("Harga baru: ", 10)  # Input harga baru
+    stok_baru = db.input_angka("Stok baru: ", 10)  # Input stok baru
+    diskon_baru = db.input_angka("Diskon baru (0-100): ", 3)  # Input diskon baru
+    deskripsi_baru = db.input_varchar("Deskripsi baru: ", 500)  # Input deskripsi baru
     kadaluarsa_baru = db.input_varchar("Tanggal kadaluarsa baru (YYYY-MM-DD): ", 10)  # Input tanggal kadaluarsa
     batas_ambil_baru = db.input_varchar("Batas pengambilan baru (YYYY-MM-DD): ", 10)  # Input batas pengambilan
 
@@ -214,15 +193,15 @@ def menu_edit_produk(toko_id):  # Fungsi untuk mengedit produk toko
             db.update_data_produk(id_produk, "nama_produk", nama_baru, toko_id)
             perubahan = True
 
-        if harga_baru and harga_baru.isdigit():
+        if harga_baru:
             db.update_data_produk(id_produk, "harga_per_produk", harga_baru, toko_id)
             perubahan = True
 
-        if stok_baru and stok_baru.isdigit():
+        if stok_baru:
             db.update_data_produk(id_produk, "stok_produk", stok_baru, toko_id)
             perubahan = True
 
-        if diskon_baru and diskon_baru.isdigit():
+        if diskon_baru:
             # Konversi diskon ke desimal (contoh: 20 jadi 0.2)
             db.update_data_produk(id_produk, "diskon", float(diskon_baru) / 100, toko_id)
             perubahan = True

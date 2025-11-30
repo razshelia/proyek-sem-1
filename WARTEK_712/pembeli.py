@@ -92,7 +92,7 @@ def proses_pembelian(sesi, produk):  # Proses pembelian produk dari hasil pencar
         input("Tekan ENTER untuk kembali ke menu...")
         return # Kembali ke menu pencarian produk
 
-    id_produk = input("Masukkan ID produk: ")  # pembeli menginputkan ID produk
+    id_produk = db.input_angka("Masukkan ID produk: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
     if not id_produk:  # Jika bukan id produk yang di inputkan
         input("ID Produk salah, tekan ENTER untuk kembali...")
         return # Kembali ke menu pencarian produk
@@ -118,12 +118,10 @@ Ambil Sebelum: {produk_terpilih[11]}''')
     print(f"Harga     : {db.format_mata_uang(produk_terpilih[4])} -> {db.format_mata_uang(harga_diskon)}")  
     # Cetak harga asli (format Rupiah) dan harga setelah diskon
 
-    jumlah_input = input(f"Jumlah beli (Stok {produk_terpilih[6]}): ")  # Meminta input jumlah produk yang ingin beli
-    if not jumlah_input.isdigit():  # Validasi: input jumlah harus berupa angka
-        print("Jumlah tidak valid.")  # Jika bukan angka, beri infomrasi 
+    jumlah = db.input_angka(f"Jumlah beli (Stok {produk_terpilih[6]}): ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    if not jumlah:  # Validasi: input jumlah harus berupa angka
+        print("Jumlah tidak valid.")  # Jika bukan angka, beri infomrasi
         return  # Keluar dari fungsi
-
-    jumlah = int(jumlah_input)  # Mengubah input string menjadi integer
     if jumlah <= 0 or jumlah > produk_terpilih[6]:  # Validasi: jumlah harus >0 dan tidak melebihi stok
         print("Stok tidak cukup.")  # Jika stok tidak mencukupi, beri informasi stok tidak cukup
         return  # Keluar dari fungsi
@@ -303,7 +301,7 @@ def menu_riwayat_pesanan(sesi):
         if pilihan == '4':  # Kembali ke dashboard pembeli
             return
 
-        id_pesanan = input("Masukkan ID pesanan: ").strip()  # Ambil ID pesanan target
+        id_pesanan = db.input_angka("Masukkan ID pesanan: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
         if not id_pesanan:  # Jika kosong, ulangi menu
             continue
         

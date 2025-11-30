@@ -22,11 +22,7 @@ def input_alamat():
 
     # Tampilkan daftar provinsi dalam bentuk tabel dengan header ID dan Provinsi
     print(tabulate(provinsi, headers=["ID","Provinsi"], tablefmt="fancy_grid"))
-    try:
-        id_provinsi = input("Pilih ID Provinsi: ").strip()  # Input pilihan provinsi
-    except Exception as e:
-        print(f"Error input: {e}")
-        return None
+    id_provinsi = db.input_angka("Pilih ID Provinsi: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
 
     if not id_provinsi:  # Jika input kosong, batalkan
         return None
@@ -38,11 +34,7 @@ def input_alamat():
 
     # Tampilkan daftar kabupaten
     print(tabulate(kabupaten, headers=["ID","Kabupaten"], tablefmt="fancy_grid"))
-    try:
-        id_kabupaten = input("Pilih ID Kabupaten: ").strip()  # Input pilihan kabupaten
-    except Exception as e:
-        print(f"Error input: {e}")
-        return None
+    id_kabupaten = db.input_angka("Pilih ID Kabupaten: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
 
     if not id_kabupaten:  # Jika input kosong, batalkan
         return None
@@ -54,20 +46,12 @@ def input_alamat():
 
     # Tampilkan daftar kecamatan
     print(tabulate(kecamatan, headers=["ID","Kecamatan"], tablefmt="fancy_grid"))
-    try:
-        id_kecamatan = input("Pilih ID Kecamatan: ").strip()  # Input pilihan kecamatan
-    except Exception as e:
-        print(f"Error input: {e}")
-        return None
+    id_kecamatan = db.input_angka("Pilih ID Kecamatan: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
 
     if not id_kecamatan:  # Jika input kosong, batalkan
         return None
 
-    try:
-        detail_alamat = input("Detail Jalan (RT/RW): ").strip()  # Input detail jalan (alamat lengkap)
-    except Exception as e:
-        print(f"Error input: {e}")
-        return None
+    detail_alamat = db.input_varchar("Detail Jalan (RT/RW): ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
     if not detail_alamat:  # Validasi wajib isi
         print("Detail alamat wajib diisi.")
         return None
@@ -92,7 +76,7 @@ def daftar():
         print("Username wajib diisi.")
         return
         
-    telepon = db.input_varchar("No HP: ", 20)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
+    telepon = db.input_angka("No HP: ", 20)  # db.input_angka: ambil input angka dengan batas panjang maksimum
     if not telepon:  # Validasi wajib isi
         print("No HP wajib diisi.")
         return
@@ -104,11 +88,7 @@ def daftar():
     
     # Validasi password: harus diisi dan lolos aturan dari db.cek_password
     while True:  # Loop untuk memastikan password valid; berhenti ketika password lolos validasi
-        try:
-            password = input("Password (minimal 8 karakter): ").strip()  # Ambil password
-        except Exception as e:
-            print(f"Error input: {e}")
-            return
+        password = db.input_varchar("Password (minimal 8 karakter): ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
         if not password:  # Jika kosong -> batalkan pendaftaran
             print("Password wajib diisi.")
             return
@@ -117,12 +97,7 @@ def daftar():
         break  # Jika lolos -> keluar loop
 
     # Konfirmasi password harus sama
-    try:
-        konfirmasi_password = input("Konfirmasi Password: ").strip()
-        return
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
+    konfirmasi_password = db.input_varchar("Konfirmasi Password: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
     if password != konfirmasi_password:  # Jika password dan konfirmasi tidak sama
         print("Password tidak sama.")
         try:
@@ -135,17 +110,16 @@ def daftar():
     # Pilih peran
     print("\n[ PILIH PERAN ]")
     print("2. Penjual (Mitra)\n3. Pembeli (Customer)")
-    try:
-        input_peran = input("Pilih peran (2/3): ").strip()
-    except Exception as e:
-        print(f"Error input: {e}")
+    input_peran = db.input_angka("Pilih peran (2/3): ", 1)  # db.input_angka: ambil input angka dengan batas panjang maksimum
+    if not input_peran:  # Validasi wajib isi
+        print("Peran wajib dipilih.")
         return
-    
-    if input_peran not in ["2", "3"]:  # Validasi hanya menerima 2 atau 3
+
+    if input_peran not in [2, 3]:  # Validasi hanya menerima 2 atau 3
         print("Peran tidak valid.")
         return
-        
-    peran = int(input_peran)  # Ubah string menjadi integer
+
+    peran = input_peran  # Sudah integer dari db.input_angka
 
     # Simpan user baru ke database
     id_user = db.daftar_user_baru(nama, username, password, telepon, email, peran)  # db.daftar_user_baru: simpan akun baru dan kembalikan id_user
@@ -162,12 +136,12 @@ def daftar():
             print("Nama toko wajib diisi.")
             return
             
-        nik = db.input_varchar("NIK Pemilik: ", 16)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
+        nik = db.input_angka("NIK Pemilik: ", 16)  # db.input_angka: ambil input angka dengan batas panjang maksimum
         if not nik:  # Validasi wajib isi
             print("NIK wajib diisi.")
             return
-            
-        kartu_keluarga = db.input_varchar("Nomor KK: ", 16)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
+
+        kartu_keluarga = db.input_angka("Nomor KK: ", 16)  # db.input_angka: ambil input angka dengan batas panjang maksimum
         if not kartu_keluarga:  # Validasi wajib isi
             print("Nomor KK wajib diisi.")
             return
@@ -193,24 +167,11 @@ def daftar():
 def login():
     # Proses login user, validasi kredensial, cek status penjual, lalu arahkan ke dashboard sesuai peran
     print("\n--- LOGIN WARTEK ---")
-    try:
-        username = input("Username: ").strip()
-    except Exception as e:
-        print(f"Error input: {e}")
+    username = db.input_varchar("Username: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
+    if not username:
         return
-    try:
-        password = input("Password: ").strip()
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
-
-    if not username or not password:  # Validasi sederhana agar tidak kosong
-        print("Username dan password wajib diisi.")
-        try:
-            input("Tekan ENTER untuk melanjutkan...")
-        except Exception as e:
-            print(f"Error input: {e}")
-            return
+    password = db.input_varchar("Password: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
+    if not password:
         return
     
     data_user = db.cek_login(username, password)  # db.cek_login: verifikasi kredensial user, kembalikan tuple (id, nama, peran) jika benar

@@ -80,11 +80,7 @@ def verifikasi_penjual():
     
     print(tabulate(tabel_data, headers=headers, tablefmt="fancy_grid"))  # Tampilkan tabel verifikasi
 
-    try:
-        id_toko = input("\nMasukkan ID toko untuk diverifikasi (Enter untuk kembali): ").strip()  # Ambil ID toko target
-    except Exception as e:
-        print(f"Error input: {e}")
-        return
+    id_toko = db.input_angka("\nMasukkan ID toko untuk diverifikasi (Enter untuk kembali): ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
     
     if id_toko:  # Jika user memasukkan nilai ID
         id_valid = [str(item[0]) for item in toko]  # Kumpulan ID valid (string) untuk validasi cepat
@@ -171,11 +167,7 @@ def daftar_transaksi():
         status = [(1, "Menunggu Diambil"), (2, "Selesai"), (3, "Dibatalkan")]  # Daftar status valid
         print(tabulate(status, headers=["ID", "Status"], tablefmt="fancy_grid"))  # Tampilkan opsi status
 
-        try:
-            status_baru = input("Masukkan ID status baru: ").strip()  # Ambil ID status baru
-        except Exception as e:
-            print(f"Error input: {e}")
-            return
+        status_baru = db.input_angka("Masukkan ID status baru: ", 1)  # db.input_angka: ambil input angka dengan batas panjang maksimum
         if status_baru:  # Jika diisi
             for item in transaksi:  # Cari transaksi berdasarkan kode yang dimasukkan
                 if item[1] == ubah_kode:  # Jika kode cocok
@@ -215,7 +207,15 @@ Pilihan Aksi:
         except Exception as e:
             print(f"Error input: {e}")
             return
-        
+
+        if pilihan not in ['1', '2', '3', '4']:
+            print("Pilihan tidak valid.")
+            try:
+                input("Tekan ENTER untuk melanjutkan...")
+            except Exception as e:
+                print(f"Error input: {e}")
+            continue
+
         if pilihan == '4':  # Kembali ke menu admin
             return
         elif pilihan == '1':  # Tambah kategori baru
