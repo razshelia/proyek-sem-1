@@ -224,17 +224,38 @@ Pilihan Aksi:
                 db.tambah_kategori(nama)  # db.tambah_kategori: tambah kategori baru
                 print(f"Kategori '{nama}' berhasil ditambahkan.")
         elif pilihan == '2':  # Edit/pulihkan kategori
-            id_kategori = input("ID kategori yang ingin diedit: ").strip()  # Ambil ID kategori target
-            if id_kategori:  # Jika diisi
-                nama_baru = db.input_varchar("Nama baru kategori: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-                if nama_baru:  # Validasi nama baru tidak kosong
-                    pulihkan = input("Pulihkan kategori? (y/n): ").strip().lower() == "y"  # Konversi ke boolean
-                    db.update_kategori(id_kategori, nama_baru, pulihkan)  # db.update_kategori: update nama kategori / pulihkan
+            id_kategori = input("ID kategori yang ingin diedit: ").strip()
+            # 1. Membuat daftar ID valid dari variabel 'kategori' yang sudah diambil sebelumnya
+            # (variabel 'kategori' berisi list tuple [(id, nama, status), ...])
+            id_valid = [str(item[0]) for item in kategori]
+            # 2. Cek apakah ID input ada di daftar valid
+            if id_kategori not in id_valid:
+                print("ID kategori tidak ditemukan.") # Tampilkan pesan error
+                try:
+                    input("Tekan ENTER untuk melanjutkan...")
+                except:
+                    pass
+                continue # Kembali ke awal loop, batalkan proses edit
+            if id_kategori:  
+                nama_baru = db.input_varchar("Nama baru kategori: ", 100)
+                if nama_baru:
+                    pulihkan = input("Pulihkan kategori? (y/n): ").strip().lower() == "y"
+                    db.update_kategori(id_kategori, nama_baru, pulihkan)
                     print("Kategori berhasil diubah.")
-        elif pilihan == '3':  # Soft delete kategori
-            id_kategori = input("ID kategori yang ingin dihapus: ").strip()  # Ambil ID kategori target
-            if id_kategori:  # Jika diisi
-                db.hapus_kategori(id_kategori)  # db.hapus_kategori: soft delete kategori
+        elif pilihan == '3':  # Hapus Kategori (Soft Delete)
+            id_kategori = input("ID kategori yang ingin dihapus: ").strip()
+            # 1. Membuat daftar ID valid dari variabel 'kategori'
+            id_valid = [str(item[0]) for item in kategori]
+            # 2. Cek apakah ID input ada di daftar valid
+            if id_kategori not in id_valid:
+                print("ID kategori tidak ditemukan.") # Tampilkan pesan error
+                try:
+                    input("Tekan ENTER untuk melanjutkan...")
+                except:
+                    pass
+                continue # Kembali ke awal loop, batalkan proses hapus
+            if id_kategori:  
+                db.hapus_kategori(id_kategori)
                 print("Kategori berhasil disembunyikan.")
 
         try:

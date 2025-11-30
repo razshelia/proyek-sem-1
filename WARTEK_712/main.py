@@ -111,16 +111,19 @@ def daftar():
     print("\n[ PILIH PERAN ]")
     print("2. Penjual (Mitra)\n3. Pembeli (Customer)")
     input_peran = input("Pilih peran (2/3): ").strip() # Ambil input peran
-
-    if not input_peran:  # Validasi wajib isi
-        print("Peran wajib dipilih.")
-        return
     
-    peran = int(input_peran)  # Konversi ke integer
-
-    if peran not in [2, 3]:  # Validasi hanya menerima 2 atau 3
-        print("Peran tidak valid.")
-        return
+    while True:
+        # 1. Minta input (sebagai String agar tidak crash jika diisi huruf)
+        input_peran = input("Pilih peran (2/3): ").strip()
+        
+        # 2. Validasi: Cek apakah input ada di daftar pilihan yang valid (String)
+        if input_peran in ["2", "3"]:
+            peran = int(input_peran) # Konversi ke integer agar siap masuk database
+            break # Input benar -> Hentikan loop dan lanjut ke bawah
+        else:
+            # 3. Jika input salah (huruf, kosong, atau angka lain)
+            print("Pilihan tidak valid. Harap masukkan angka 2 atau 3.")
+            # Loop akan mengulang otomatis dari atas (meminta input lagi)
 
     # Simpan user baru ke database
     id_user = db.daftar_user_baru(nama, username, password, telepon, email, peran)  # db.daftar_user_baru: simpan akun baru dan kembalikan id_user
