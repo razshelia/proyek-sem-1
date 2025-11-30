@@ -161,22 +161,50 @@ def daftar_transaksi():
         ])
     
     print(tabulate(data, headers=["Kode", "Toko", "Jumlah", "Pembeli", "Tanggal", "Status"], tablefmt="fancy_grid"))
-    
-    ubah_kode = input("\nMasukkan kode untuk ubah status (Enter untuk batal): ").strip()  # Ambil kode target untuk diubah
-    if ubah_kode:  # Jika user ingin mengubah status
-        status = [(1, "Menunggu Diambil"), (2, "Selesai"), (3, "Dibatalkan")]  # Daftar status valid
-        print(tabulate(status, headers=["ID", "Status"], tablefmt="fancy_grid"))  # Tampilkan opsi status
 
-        status_baru = db.input_angka("Masukkan ID status baru: ", 1)  # db.input_angka: ambil input angka dengan batas panjang maksimum
-        if status_baru:  # Jika diisi
-            for item in transaksi:  # Cari transaksi berdasarkan kode yang dimasukkan
-                if item[1] == ubah_kode:  # Jika kode cocok
-                    db.update_status_pesanan(item[0], status_baru)  # db.update_status_pesanan: ubah status pesanan global
-                    print("Status berhasil diubah!")  # Beri pesan berhasil
-                    break  # Hentikan pencarian setelah diubah
+    # 1. Buat daftar Kode Transaksi yang valid dari data yang ada
+    #    (Agar sistem tahu kode mana saja yang tersedia)
+    list_kode_valid = [item[1] for item in transaksi]
 
+    while True:
+        # Minta input kode transaksi
+        ubah_kode = input("\nMasukkan kode untuk ubah status (Enter untuk batal): ").strip()
+        # Skenario Batal
+        if not ubah_kode:
+            return  # Langsung kembali ke menu admin jika di-Enter kosong
+        # Validasi: Cek apakah kode ada di daftar valid?
+        if ubah_kode in list_kode_valid:
+            break  # Kode valid! Lanjut ke tahap berikutnya
+        print("Kode transaksi tidak ditemukan. Silakan cek tabel dan coba lagi.")
+    # Jika kode valid, lanjut pilih status
+    status_opsi = [(1, "Menunggu Diambil"), (2, "Selesai"), (3, "Dibatalkan")]
+    print(tabulate(status_opsi, headers=["ID", "Status"], tablefmt="fancy_grid"))
+
+    while True:
+        # Minta input ID status baru
+        status_baru = db.input_angka("Masukkan ID status baru (1-3): ", 1)
+        # Validasi input kosong (Wajib isi jika sudah pilih kode)
+        if not status_baru:
+            print("Status wajib dipilih.")
+            continue
+        # Validasi apakah input adalah "1", "2", atau "3"
+        if status_baru in ['1', '2', '3']:
+            # Cari ID transaksi (Primary Key) berdasarkan Kode yang dipilih tadi
+            id_transaksi_target = None
+            for item in transaksi:
+                if item[1] == ubah_kode:
+                    id_transaksi_target = item[0]
+                    break
+            # Lakukan Update ke Database
+            if id_transaksi_target:
+                # Konversi status_baru ke integer untuk database
+                db.update_status_pesanan(id_transaksi_target, int(status_baru))
+                print("Status berhasil diubah!")
+            break # Selesai, keluar dari loop
+        else:
+            print("Pilihan status tidak valid. Hanya masukkan 1, 2, atau 3.")
     try:
-        input("Tekan ENTER untuk melanjutkan...")  # Jeda
+        input("Tekan ENTER untuk melanjutkan...")
     except Exception as e:
         print(f"Error input: {e}")
         return

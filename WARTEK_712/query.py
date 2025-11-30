@@ -596,8 +596,9 @@ def ambil_detail_pesanan(pesanan_id):
                    JOIN profil_penjual pp ON ps.id_profil_penjual=pp.id_profil_penjual JOIN alamat a ON pp.id_alamat=a.id_alamat 
                    JOIN kecamatan kec ON a.id_kecamatan=kec.id_kecamatan WHERE ps.id_pesanan=%s""", (pesanan_id,))
     header = cursor.fetchone()
-    cursor.execute("""SELECT p.nama_produk, dp.jumlah, dp.harga_saat_beli, p.harga_per_produk FROM detail_pesanan dp 
-                   JOIN produk p ON dp.id_produk=p.id_produk WHERE dp.id_pesanan=%s""", (pesanan_id,))
+    cursor.execute("""SELECT p.nama_produk, dp.jumlah, dp.harga_saat_beli, p.harga_per_produk, p.id_produk 
+                   FROM detail_pesanan dp 
+                   JOIN produk p ON dp.id_produk=p.id_produk WHERE dp.id_pesanan=%s""", (pesanan_id,)) 
     items = cursor.fetchall()
     conn.close()
     return header, items

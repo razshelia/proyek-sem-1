@@ -1,4 +1,5 @@
 # === GRUP 1: IMPORTS & DASHBOARD ===
+from datetime import datetime
 from tabulate import tabulate
 import query as db
 
@@ -106,58 +107,106 @@ def menu_inventaris(toko_id):
                 print(f"Error input: {e}")
                 continue
             
-
 def menu_tambah_produk(toko_id):
-    # Menambahkan produk baru ke inventaris toko
     print("\n--- TAMBAH PRODUK BARU ---")
-    
-    nama = db.input_varchar("Nama produk: ", 100)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-    if not nama:  # Jika nama kosong
-        print("Nama produk wajib diisi.")  # Beri tahu bahwa nama wajib
-        return  # Keluar dari proses tambah produk
-        
-    harga = db.input_angka("Harga normal: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
-    if not harga:  # Validasi: harus terisi
-        print("Harga harus angka.")  # Beri tahu kesalahan format
-        return  # Batalkan proses
-
-    stok = db.input_angka("Stok awal: ", 10)  # db.input_angka: ambil input angka dengan batas panjang maksimum
-    if not stok:  # Validasi: harus terisi
-        print("Stok harus angka.")  # Beri tahu kesalahan format
-        return  # Batalkan proses
-        
-    kadaluarsa = db.input_varchar("Tanggal kadaluarsa (YYYY-MM-DD): ", 10)  # db.input_varchar: ambil input teks dengan batas
-    batas_ambil = db.input_varchar("Batas pengambilan (YYYY-MM-DD): ", 10)   # db.input_varchar: ambil input teks dengan batas
-    
-    input_diskon = db.input_angka("Diskon (0-100, Enter untuk 0): ", 3)  # db.input_angka: ambil input angka dengan batas panjang maksimum
-    diskon = float(input_diskon) / 100 if input_diskon else 0  # Ubah ke desimal (0-1)
-
-    deskripsi = db.input_varchar("Deskripsi produk: ", 500)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-    
-    kategori = db.ambil_semua_kategori()  # db.ambil_semua_kategori: ambil daftar kategori aktif
-    if not kategori:  # Jika tidak ada kategori terdaftar
-        print("Tidak ada kategori tersedia.")  # Informasikan tidak ada kategori
-        return  # Batalkan proses
-    
-    print("\nPilih Kategori:")
-    print(tabulate(kategori, headers=["ID", "Kategori"], tablefmt="fancy_grid"))  # Tampilkan daftar kategori
-    id_kategori = db.input_varchar("Pilih ID kategori: ", 10)  # db.input_varchar: ambil input teks dengan batas panjang maksimum
-    
-    if not id_kategori:  # Wajib memilih kategori
-        print("Kategori wajib dipilih.")
+    print("(Ketik 'batal' di inputan nama jika ingin membatalkan)")
+    # 1. Input Nama (Wajib Diisi)
+    while True:
+        nama = db.input_varchar("Nama produk: ", 100)
+        if nama.lower() == 'batal': return # Opsi keluar
+        if nama:
+            break
+        print("Nama produk wajib diisi.")
+    # 2. Input Harga (Wajib Angka)
+    while True:
+        harga_str = db.input_angka("Harga normal: ", 10)
+        if harga_str:
+            harga = int(harga_str) # Konversi ke integer untuk DB
+            break
+        print("Harga wajib diisi angka.")
+    # 3. Input Stok (Wajib Angka)
+    while True:
+        stok_str = db.input_angka("Stok awal: ", 10)
+        if stok_str:
+            stok = int(stok_str)
+            break
+        print("Stok wajib diisi angka.")
+    # 4. Input Tanggal Kadaluarsa (Validasi Format YYYY-MM-DD)
+    while True:
+        kadaluarsa = db.input_varchar("Tanggal kadaluarsa (YYYY-MM-DD): ", 10)
+        if not kadaluarsa:
+            print("Tanggal wajib diisi.")
+            continue
+        try:
+            # Cek apakah format sesuai DATE Postgres
+            datetime.strptime(kadaluarsa, '%Y-%m-%d')
+            break
+        except ValueError:
+            print("Format salah! Harap gunakan format Tahun-Bulan-Hari (contoh: 2025-12-31).")
+    # 5. Input Batas Pengambilan (Validasi Format YYYY-MM-DD)
+    while True:
+        batas_ambil = db.input_varchar("Batas pengambilan (YYYY-MM-DD): ", 10)
+        if not batas_ambil:
+            print("Tanggal wajib diisi.")
+            continue
+        try:
+            datetime.strptime(batas_ambil, '%Y-%m-%d')
+            # Opsional: Validasi logika (batas ambil tidak boleh melebihi kadaluarsa)
+            if batas_ambil > kadaluarsa:
+                print("Batas pengambilan tidak boleh melebihi tanggal kadaluarsa.")
+                continue
+            break
+        except ValueError:
+            print("Format salah! Harap gunakan format Tahun-Bulan-Hari (contoh: 2025-12-31).")
+    # 6. Input Diskon (Wajib Angka, 0-100)
+    while True:
+        input_diskon = db.input_angka("Diskon (0-100, isi 0 jika tidak ada): ", 3)
+        if input_diskon:
+            diskon_val = int(input_diskon)
+            if 0 <= diskon_val <= 100:
+                diskon = float(diskon_val) / 100 # Konversi ke desimal (0.2) untuk DB
+                break
+            else:
+                print("Diskon harus antara 0 sampai 100.")
+        else:
+            print("Diskon wajib diisi (isi 0 jika tidak ada).")
+    # 7. Input Deskripsi (Wajib Diisi)
+    while True:
+        deskripsi = db.input_varchar("Deskripsi produk: ", 500)
+        if deskripsi:
+            break
+        print("Deskripsi wajib diisi.")
+    # 8. Pilih Kategori
+    kategori = db.ambil_semua_kategori()
+    if not kategori:
+        print("Tidak ada kategori tersedia di sistem. Hubungi Admin.")
         return
-    
-    id_kategori_valid = [str(kat[0]) for kat in kategori]  # Buat daftar ID kategori valid dalam bentuk string
-    if id_kategori not in id_kategori_valid:  # Validasi ID input apakah ada dalam daftar
-        print("ID kategori tidak valid.")  # Beri tahu jika ID salah
-        return  # Batalkan proses
-    
-    if db.tambah_produk_baru(nama, harga, stok, diskon, deskripsi, kadaluarsa, batas_ambil, id_kategori, toko_id):  # db.tambah_produk_baru: simpan produk baru
-        print("Produk berhasil ditambahkan!")  # Berhasil tambah
+    print("\nPilih Kategori:")
+    print(tabulate(kategori, headers=["ID", "Kategori"], tablefmt="fancy_grid"))
+    while True:
+        id_kategori_input = db.input_angka("Pilih ID kategori: ", 10)
+        if not id_kategori_input:
+            print("Kategori wajib dipilih.")
+            continue
+        # Validasi apakah ID ada di daftar
+        id_valid = False
+        for kat in kategori:
+            if str(kat[0]) == id_kategori_input:
+                id_valid = True
+                break
+        if id_valid:
+            id_kategori = int(id_kategori_input) # Siap masuk DB
+            break
+        else:
+            print("ID Kategori tidak valid. Silakan pilih dari tabel di atas.")
+    # Eksekusi Simpan ke Database
+    if db.tambah_produk_baru(nama, harga, stok, diskon, deskripsi, kadaluarsa, batas_ambil, id_kategori, toko_id):
+        print("Produk berhasil ditambahkan!")
     else:
-        print("Gagal menambahkan produk.")  # Gagal tambah
-    input("Tekan ENTER untuk melanjutkan...")  # Jeda
-
+        print("Gagal menambahkan produk (Error Database).")
+    
+    input("Tekan ENTER untuk melanjutkan...")
+    
 def menu_edit_produk(toko_id):  # Fungsi untuk mengedit produk toko
     try:  # Tangkap error input
         id_produk = input("\nMasukkan ID produk yang ingin diedit: ").strip()  # Minta ID produk dari user

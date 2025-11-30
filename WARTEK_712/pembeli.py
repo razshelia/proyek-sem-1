@@ -349,23 +349,52 @@ Batas Ambil: {header[3]}''')
             input("Tekan ENTER untuk melanjutkan...")  # Jeda
             
         elif pilihan == '3':  # Memberi ulasan untuk pesanan yang selesai
-            status = db.ambil_status_pesanan(id_pesanan)  # db.ambil_status_pesanan: ambil status pesanan (id_status)
+            status = db.ambil_status_pesanan(id_pesanan)
             if status and status[0] == 2:  # Hanya bisa ulasan jika status 2 (Selesai)
-                rating = input("Rating (1-5): ").strip()  # Ambil rating
-                komentar = input("Komentar: ").strip()  # Ambil komentar
-                id_produk = input("ID Produk: ").strip()  # Ambil id produk untuk ulasan
-                
-                if rating and rating in ['1','2','3','4','5'] and komentar and id_produk:  # Validasi input ulasan lengkap
-                    if db.kirim_ulasan_pembeli(rating, komentar, id_produk, sesi['id']):  # db.kirim_ulasan_pembeli: simpan ulasan baru
+                # Ambil data item dari pesanan tersebut
+                _, items = db.ambil_detail_pesanan(id_pesanan)
+                if not items:
+                    print("Tidak ada produk dalam pesanan ini.")
+                    input("Tekan ENTER untuk kembali...")
+                    return
+                # Tampilkan tabel produk dalam pesanan untuk dipilih
+                print("\n--- PILIH PRODUK UNTUK DIULAS ---")
+                data_produk_pesanan = [] # List untuk menampung data produk dalam pesanan
+                list_id_valid = []  # List untuk menyimpan ID produk valid dari pesanan
+                # Loop item untuk ditampilkan ke tabel
+                # Struktur item dari query baru: [0]Nama, [1]Jml, [2]HrgBeli, [3]HrgAsli, [4]ID
+                for item in items:
+                    data_produk_pesanan.append([
+                        item[4],  # ID Produk (Index 4 dari query baru)
+                        item[0]   # Nama Produk
+                    ])
+                    list_id_valid.append(str(item[4])) # Simpan ID valid untuk validasi
+                print(tabulate(data_produk_pesanan, headers=["ID Produk", "Nama Produk"], tablefmt="fancy_grid"))
+                # --- Input Data Ulasan ---
+                rating = input("Rating (1-5): ").strip()
+                komentar = input("Komentar: ").strip()
+                # Validasi ID Produk (Looping sampai benar)
+                while True:
+                    id_produk = input("ID Produk (Lihat tabel di atas): ").strip()
+                    if not id_produk:
+                        print("ID Produk wajib diisi.")
+                        continue
+                    if id_produk not in list_id_valid:
+                        print("ID Produk tidak valid atau tidak ada di pesanan ini.")
+                        continue
+                    break # ID Validasi Selesai
+                # Proses Simpan
+                if rating and rating in ['1','2','3','4','5'] and komentar:
+                    if db.kirim_ulasan_pembeli(rating, komentar, id_produk, sesi['id']):
                         print("Ulasan terkirim.")
-                    else:  # Jika simpan ulasan gagal
+                    else:
                         print("Gagal mengirim ulasan.")
-                else:  # Jika input tidak lengkap/valid
-                    print("Data ulasan tidak lengkap.")
-            else:  # Jika status bukan selesai
+                else:
+                    print("Data ulasan tidak lengkap atau rating salah.")
+            else:
                 print("Hanya bisa memberi ulasan untuk pesanan yang selesai.")
-            input("Tekan ENTER untuk melanjutkan...")  # Jeda
-
+            
+            input("Tekan ENTER untuk melanjutkan...")
 # === GRUP 5: FITUR ADUAN ===
 
 def menu_aduan(user_id):
