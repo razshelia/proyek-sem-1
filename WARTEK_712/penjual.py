@@ -122,7 +122,7 @@ def menu_tambah_produk(toko_id):
         harga_str = db.input_angka("Harga normal: ", 10)
         if harga_str:
             harga = int(harga_str) # Konversi ke integer untuk DB
-            if stok <= 0:  # Cek apakah harga 0 atau negatif
+            if harga <= 0:  # Cek apakah harga 0 atau negatif
                 print("Stok tidak boleh 0 atau negatif!")
                 continue  #  Ulangi input dari awal
             break  #  Keluar dari loop
