@@ -1,8 +1,8 @@
 from tabulate import tabulate  # Mengimpor fungsi tabulate untuk menampilkan data dalam bentuk tabel di terminal
-import query as db            # Mengimpor modul query.py sebagai db (berisi fungsi-fungsi untuk interaksi data/"database")
-import admin as ad            # Mengimpor modul admin.py sebagai ad (menu dan logika untuk admin)
-import penjual as pj          # Mengimpor modul penjual.py sebagai pj (menu dan logika untuk penjual/mitra)
-import pembeli as pb          # Mengimpor modul pembeli.py sebagai pb (menu dan logika untuk pembeli/customer)
+import query as db             # Mengimpor modul query.py sebagai db (berisi fungsi-fungsi untuk interaksi data/"database")
+import admin as ad             # Mengimpor modul admin.py sebagai ad (menu dan logika untuk admin)
+import penjual as pj           # Mengimpor modul penjual.py sebagai pj (menu dan logika untuk penjual/mitra)
+import pembeli as pb           # Mengimpor modul pembeli.py sebagai pb (menu dan logika untuk pembeli/customer)
 
 # Variabel global untuk menyimpan informasi sesi pengguna yang sedang login
 # - id: id user yang login (None jika belum login)
@@ -10,7 +10,7 @@ import pembeli as pb          # Mengimpor modul pembeli.py sebagai pb (menu dan 
 # - peran: 1=Admin, 2=Penjual, 3=Pembeli
 # - keranjang: list item yang akan dibeli (khusus pembeli)
 SESI = {"id": None, "nama": None, "peran": None, "keranjang": []}
-
+2
 def input_alamat():
     # Memilih alamat bertingkat (provinsi->kabupaten->kecamatan->detail) lalu simpan, mengembalikan id_alamat atau None
     print("\n--- PILIH LOKASI ---")  # Judul bagian pemilihan alamat

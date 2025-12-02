@@ -122,14 +122,20 @@ def menu_tambah_produk(toko_id):
         harga_str = db.input_angka("Harga normal: ", 10)
         if harga_str:
             harga = int(harga_str) # Konversi ke integer untuk DB
-            break
+            if stok <= 0:  # Cek apakah harga 0 atau negatif
+                print("Stok tidak boleh 0 atau negatif!")
+                continue  #  Ulangi input dari awal
+            break  #  Keluar dari loop
         print("Harga wajib diisi angka.")
     # 3. Input Stok (Wajib Angka)
     while True:
         stok_str = db.input_angka("Stok awal: ", 10)
         if stok_str:
             stok = int(stok_str)
-            break
+            if stok <= 0:  # Cek apakah harga 0 atau negatif
+                print("Stok tidak boleh 0 atau negatif!")
+                continue  #  Ulangi input dari awal
+            break  #  Keluar dari loop
         print("Stok wajib diisi angka.")
     # 4. Input Tanggal Kadaluarsa (Validasi Format YYYY-MM-DD)
     while True:
@@ -226,8 +232,24 @@ def menu_edit_produk(toko_id):  # Fungsi untuk mengedit produk toko
     print("\nEdit Produk (kosongkan jika tidak ingin mengubah)")  # Instruksi untuk user
 
     nama_baru = db.input_varchar("Nama baru: ", 100)  # Input nama baru
-    harga_baru = db.input_angka("Harga baru: ", 10)  # Input harga baru
-    stok_baru = db.input_angka("Stok baru: ", 10)  # Input stok baru
+    while True:
+        harga_baru = db.input_angka("Harga baru: ", 10)  # Input harga baru
+        if harga_baru:
+            harga = int(harga_baru) # Konversi ke integer untuk DB
+            if harga <= 0:  # Cek apakah harga 0 atau negatif
+                print("Harga tidak boleh 0 atau negatif!")
+                continue  #  Ulangi input dari awal
+            break  #  Kelaur dari loop
+        print("Harga wajib diisi angka.")
+    while True:
+        stok_baru = db.input_angka("Stok baru: ", 10)  # Input stok baru
+        if stok_baru:
+            stok = int(stok_baru)  # Konversi ke integer untuk DB
+            if stok <= 0:  # Cek apakah harga 0 atau negatif
+                print("Stok tidak boleh 0 atau negatif!")
+                continue  #  Ulangi input dari awal
+            break  #  Keluar dari loop
+        print("Stok wajin diisi angka.")
     diskon_baru = db.input_angka("Diskon baru (0-100): ", 3)  # Input diskon baru
     deskripsi_baru = db.input_varchar("Deskripsi baru: ", 500)  # Input deskripsi baru
     kadaluarsa_baru = db.input_varchar("Tanggal kadaluarsa baru (YYYY-MM-DD): ", 10)  # Input tanggal kadaluarsa
