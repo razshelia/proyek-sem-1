@@ -232,24 +232,18 @@ def menu_edit_produk(toko_id):  # Fungsi untuk mengedit produk toko
     print("\nEdit Produk (kosongkan jika tidak ingin mengubah)")  # Instruksi untuk user
 
     nama_baru = db.input_varchar("Nama baru: ", 100)  # Input nama baru
-    while True:
-        harga_baru = db.input_angka("Harga baru: ", 10)  # Input harga baru
-        if harga_baru:
-            harga = int(harga_baru) # Konversi ke integer untuk DB
-            if harga <= 0:  # Cek apakah harga 0 atau negatif
-                print("Harga tidak boleh 0 atau negatif!")
-                continue  #  Ulangi input dari awal
-            break  #  Kelaur dari loop
-        print("Harga wajib diisi angka.")
-    while True:
-        stok_baru = db.input_angka("Stok baru: ", 10)  # Input stok baru
-        if stok_baru:
-            stok = int(stok_baru)  # Konversi ke integer untuk DB
-            if stok <= 0:  # Cek apakah harga 0 atau negatif
-                print("Stok tidak boleh 0 atau negatif!")
-                continue  #  Ulangi input dari awal
-            break  #  Keluar dari loop
-        print("Stok wajin diisi angka.")
+    harga_baru = db.input_angka("Harga baru: ", 10)  # Input harga baru
+    if harga_baru:
+        harga = int(harga_baru) # Konversi ke integer untuk DB
+        if harga <= 0:  # Cek apakah harga 0 atau negatif
+            print("Harga tidak boleh 0 atau negatif!")
+            return  #  Ulangi input dari awal
+    stok_baru = db.input_angka("Stok baru: ", 10)  # Input stok baru
+    if stok_baru:
+        stok = int(stok_baru)  # Konversi ke integer untuk DB
+        if stok <= 0:  # Cek apakah harga 0 atau negatif
+            print("Stok tidak boleh 0 atau negatif!")
+            return  #  Ulangi input dari awal
     diskon_baru = db.input_angka("Diskon baru (0-100): ", 3)  # Input diskon baru
     deskripsi_baru = db.input_varchar("Deskripsi baru: ", 500)  # Input deskripsi baru
     kadaluarsa_baru = db.input_varchar("Tanggal kadaluarsa baru (YYYY-MM-DD): ", 10)  # Input tanggal kadaluarsa
